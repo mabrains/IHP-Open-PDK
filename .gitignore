@@ -186,3 +186,6 @@ run_git-pulse
 
 # Git-cliff
 cliff*toml
+
+# OpneVAF compiled models dir
+*/*/ngspice/osdi
