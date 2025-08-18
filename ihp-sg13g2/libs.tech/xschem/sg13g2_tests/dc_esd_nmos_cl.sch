@@ -106,20 +106,20 @@ C {lab_pin.sym} 560 -1050 1 0 {name=p1 sig_type=std_logic lab=Vin1}
 C {devices/gnd.sym} 670 -910 0 0 {name=l9 lab=GND}
 C {devices/ammeter.sym} 670 -1020 0 0 {name=Vmda1}
 C {lab_pin.sym} 670 -1060 1 0 {name=p8 sig_type=std_logic lab=Vin1}
-C {sg13g2_pr/nmoscl_2.sym} 670 -950 2 1 {name=D7
-model=nmoscl_2
-m=1
-spiceprefix=X
-}
 C {isource.sym} 560 -960 2 0 {name=I0 value=1m}
 C {devices/gnd.sym} 850 -910 0 0 {name=l1 lab=GND}
 C {lab_pin.sym} 850 -1050 1 0 {name=p2 sig_type=std_logic lab=Vin2}
 C {devices/gnd.sym} 940 -910 0 0 {name=l4 lab=GND}
 C {devices/ammeter.sym} 940 -1020 0 0 {name=Vmda2}
 C {lab_pin.sym} 940 -1060 1 0 {name=p3 sig_type=std_logic lab=Vin2}
-C {sg13g2_pr/nmoscl_2.sym} 940 -950 2 1 {name=D1
+C {isource.sym} 850 -960 2 0 {name=I1 value=1m}
+C {sg13g2_pr/nmoscl_2.sym} 670 -950 2 0 {name=D1
+model=nmoscl_2
+m=1
+spiceprefix=X
+}
+C {sg13g2_pr/nmoscl_4.sym} 940 -950 2 0 {name=D2
 model=nmoscl_4
 m=1
 spiceprefix=X
 }
-C {isource.sym} 850 -960 2 0 {name=I1 value=1m}
