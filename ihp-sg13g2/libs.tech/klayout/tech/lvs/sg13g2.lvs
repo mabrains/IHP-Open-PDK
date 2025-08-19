@@ -404,13 +404,13 @@ min_caps(1e-18)
 
 # === COMPARISON === 
 logger.info('Starting SG13G2 LVS Comparison')
-compare
+success = compare && flag_missing_ports
 
 #================================================
 #------------- COMPARISON RESULTS ---------------
 #================================================
 
-if !compare
+if ! success
   logger.info('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
   logger.error("ERROR : Netlists don't match")
   logger.info('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
