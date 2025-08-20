@@ -24,6 +24,7 @@ Usage:
     [--no_net_names] [--spice_comments] [--net_only] [--no_simplify]
     [--no_series_res] [--no_parallel_res] [--combine_devices] [--top_lvl_pins]
     [--purge] [--purge_nets] [--verbose]
+    [--allow_missing_ports]
 
 Options:
     --help -h                           Displays this help message.
@@ -43,6 +44,7 @@ Options:
     --purge                             Removes unused nets from both layout and schematic netlists.
     --purge_nets                        Purges floating nets from both layout and schematic netlists.
     --verbose                           Enables detailed rule execution logs for debugging purposes.
+    --allow_missing_ports               Allows missing or improperly labeled ports(pins) in the top-level circuit.
 """
 
 from docopt import docopt
@@ -211,6 +213,7 @@ def generate_klayout_switches(arguments, layout_path, netlist_path):
         "topcell": get_run_top_cell_name(arguments, layout_path),
         "input": os.path.abspath(layout_path),
         "schematic": os.path.abspath(netlist_path)
+        "allow_missing_ports": "true" if arguments.get("--allow_missing_ports") else "false",
     }
 
     return switches
