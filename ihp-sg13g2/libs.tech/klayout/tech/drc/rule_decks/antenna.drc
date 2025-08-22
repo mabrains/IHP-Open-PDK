@@ -418,57 +418,88 @@ logger.info('Calculating cumulative antenna ratios')
 connect(cont_drw, metal1_drw)
 ar_m1 = evaluate_nets(gate, { 'm' => metal1_drw }, "put('m1_ratio', area(m) / area)")
 
+logger.info('Evaluated metal1 ratio')
+
 # Connect and Check Via 1
 connect(metal1_drw, via1_drw)
 ar_v1 = evaluate_nets(gate, { 'v' => via1_drw }, "put('v1_ratio', area(v) / area)")
+
+logger.info('Evaluated via1 ratio')
 
 # Connect and Check Metal 2
 connect(via1_drw, metal2_drw)
 ar_m2 = evaluate_nets(gate, { 'm' => metal2_drw }, "put('m2_ratio', area(m) / area)")
 
+logger.info('Evaluated metal2 ratio')
+
 # Connect and Check Via 2
 connect(metal2_drw, via2_drw)
 ar_v2 = evaluate_nets(gate, { 'v' => via2_drw }, "put('v2_ratio', area(v) / area)")
+
+logger.info('Evaluated via2 ratio')
 
 # Connect and Check Metal 3
 connect(via2_drw, metal3_drw)
 ar_m3 = evaluate_nets(gate, { 'm' => metal3_drw }, "put('m3_ratio', area(m) / area)")
 
+logger.info('Evaluated metal3 ratio')
+
 # Connect and Check Via 3
 connect(metal3_drw, via3_drw)
 ar_v3 = evaluate_nets(gate, { 'v' => via3_drw }, "put('v3_ratio', area(v) / area)")
+
+logger.info('Evaluated via3 ratio')
 
 # Connect and Check Metal 4
 connect(via3_drw, metal4_drw)
 ar_m4 = evaluate_nets(gate, { 'm' => metal4_drw }, "put('m4_ratio', area(m) / area)")
 
+logger.info('Evaluated metal4 ratio')
+
 # Connect and Check Via 4
 connect(metal4_drw, via4_drw)
 ar_v4 = evaluate_nets(gate, { 'v' => via4_drw }, "put('v4_ratio', area(v) / area)")
+
+logger.info('Evaluated via4 ratio')
 
 # Connect and Check Metal 5
 connect(via4_drw, metal5_drw)
 ar_m5 = evaluate_nets(gate, { 'm' => metal5_drw }, "put('m5_ratio', area(m) / area)")
 
+logger.info('Evaluated metal5 ratio')
+
 # Connect and Check TopVia 1
 connect(metal5_drw, topvia1_drw)
 ar_tv1 = evaluate_nets(gate, { 'v' => topvia1_drw }, "put('tv1_ratio', area(v) / area)")
+
+logger.info('Evaluated topvia1 ratio')
 
 # Connect and Check TopMetal 1
 connect(topvia1_drw, topmetal1_drw)
 ar_tm1 = evaluate_nets(gate, { 'm' => topmetal1_drw }, "put('tm1_ratio', area(m) / area)")
 
+logger.info('Evaluated topmetal1 ratio')
+
 # Connect and Check TopVia 2
 connect(topmetal1_drw, topvia2_drw)
 ar_tv2 = evaluate_nets(gate, { 'v' => topvia2_drw }, "put('tv2_ratio', area(v) / area)")
+
+
+logger.info('Evaluated topvia2 ratio')
+
 
 # Connect and Check TopMetal 2
 connect(topvia2_drw, topmetal2_drw)
 ar_tm2 = evaluate_nets(gate, { 'm' => topmetal2_drw }, "put('tm2_ratio', area(m) / area)")
 
+logger.info('Evaluated topmetal2 ratio')
+
 # Check for diode presence
 diode_presence = evaluate_nets(gate, { 'd' => diode }, "put('has_diode', area(d) > 0.16 ? 1 : 0)")
 
+
+# Log the diode presence evaluation
+logger.info('Evaluated diode presence')
 
 # Rules Ant.b & Ant.e: Cumulative Metal Area Ratio (with and without Diode)
 logger.info('Executing rules Ant.b and Ant.e step-by-step for each metal layer')
@@ -481,52 +512,80 @@ ar_all_layers = (ar_m1 + ar_m2 + ar_m3 + ar_m4 + ar_m5 + ar_tm1 + ar_tm2 + diode
 ar_m1.forget; ar_m2.forget; ar_m3.forget; ar_m4.forget; ar_m5.forget; ar_tm1.forget; ar_tm2.forget;
 
 # Check after Metal 1
-violation_expr_m1 = "(value('has_diode') == 0 && value('m1_ratio') >= ar_max_no_diode) || (value('has_diode') == 1 && value('m1_ratio') >= ar_max_with_diode)"
-ant_be_errors_m1 = ar_all_layers.selected_if(violation_expr_m1, { 'ar_max_no_diode' => ant_b_ratio, 'ar_max_with_diode' => ant_e_ratio })
-ant_be_errors_m1.output('Ant.b_and_Ant.e_M1', '7.1 Ant.b/e up to M1: Cumulative metal antenna ratio check.')
-ant_be_errors_m1.forget
+# Rule Ant.b (No Diode)
+ant_b_errors_m1 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('m1_ratio') >= #{ant_b_ratio})")
+ant_b_errors_m1.output('Ant.b_M1', '7.1 Ant.b up to M1: Cumulative metal antenna ratio check (no diode).')
+ant_b_errors_m1.forget
+# Rule Ant.e (With Diode)
+ant_e_errors_m1 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('m1_ratio') >= #{ant_e_ratio})")
+ant_e_errors_m1.output('Ant.e_M1', '7.1 Ant.e up to M1: Cumulative metal antenna ratio check (with diode).')
+ant_e_errors_m1.forget
 
 # Check after Metal 2
-ar_all_layers.evaluate("put('sum_m1_m2', value('m1_ratio') + value('m2_ratio'))", {}, true) # Cumulative M1+M2
-violation_expr_m2 = "(value('has_diode') == 0 && value('sum_m1_m2') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_m1_m2') >= ar_max_with_diode)"
-ant_be_errors_m2 = ar_all_layers.selected_if(violation_expr_m2, { 'ar_max_no_diode' => ant_b_ratio, 'ar_max_with_diode' => ant_e_ratio })
-ant_be_errors_m2.output('Ant.b_and_Ant.e_M2', '7.1 Ant.b/e up to M2: Cumulative metal antenna ratio check.')
-ant_be_errors_m2.forget
+ar_all_layers.evaluate("put('sum_m1_m2', value('m1_ratio') + value('m2_ratio'))", {}, true)
+# Rule Ant.b (No Diode)
+ant_b_errors_m2 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_m2') >= #{ant_b_ratio})")
+ant_b_errors_m2.output('Ant.b_M2', '7.1 Ant.b up to M2: Cumulative metal antenna ratio check (no diode).')
+ant_b_errors_m2.forget
+# Rule Ant.e (With Diode)
+ant_e_errors_m2 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_m2') >= #{ant_e_ratio})")
+ant_e_errors_m2.output('Ant.e_M2', '7.1 Ant.e up to M2: Cumulative metal antenna ratio check (with diode).')
+ant_e_errors_m2.forget
 
 # Check after Metal 3
-ar_all_layers.evaluate("put('sum_m1_m3', value('sum_m1_m2') + value('m3_ratio'))", {}, true) # Cumulative M1-M3
-violation_expr_m3 = "(value('has_diode') == 0 && value('sum_m1_m3') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_m1_m3') >= ar_max_with_diode)"
-ant_be_errors_m3 = ar_all_layers.selected_if(violation_expr_m3, { 'ar_max_no_diode' => ant_b_ratio, 'ar_max_with_diode' => ant_e_ratio })
-ant_be_errors_m3.output('Ant.b_and_Ant.e_M3', '7.1 Ant.b/e up to M3: Cumulative metal antenna ratio check.')
-ant_be_errors_m3.forget
+ar_all_layers.evaluate("put('sum_m1_m3', value('sum_m1_m2') + value('m3_ratio'))", {}, true)
+# Rule Ant.b (No Diode)
+ant_b_errors_m3 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_m3') >= #{ant_b_ratio})")
+ant_b_errors_m3.output('Ant.b_M3', '7.1 Ant.b up to M3: Cumulative metal antenna ratio check (no diode).')
+ant_b_errors_m3.forget
+# Rule Ant.e (With Diode)
+ant_e_errors_m3 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_m3') >= #{ant_e_ratio})")
+ant_e_errors_m3.output('Ant.e_M3', '7.1 Ant.e up to M3: Cumulative metal antenna ratio check (with diode).')
+ant_e_errors_m3.forget
 
 # Check after Metal 4
-ar_all_layers.evaluate("put('sum_m1_m4', value('sum_m1_m3') + value('m4_ratio'))", {}, true) # Cumulative M1-M4
-violation_expr_m4 = "(value('has_diode') == 0 && value('sum_m1_m4') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_m1_m4') >= ar_max_with_diode)"
-ant_be_errors_m4 = ar_all_layers.selected_if(violation_expr_m4, { 'ar_max_no_diode' => ant_b_ratio, 'ar_max_with_diode' => ant_e_ratio })
-ant_be_errors_m4.output('Ant.b_and_Ant.e_M4', '7.1 Ant.b/e up to M4: Cumulative metal antenna ratio check.')
-ant_be_errors_m4.forget
+ar_all_layers.evaluate("put('sum_m1_m4', value('sum_m1_m3') + value('m4_ratio'))", {}, true)
+# Rule Ant.b (No Diode)
+ant_b_errors_m4 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_m4') >= #{ant_b_ratio})")
+ant_b_errors_m4.output('Ant.b_M4', '7.1 Ant.b up to M4: Cumulative metal antenna ratio check (no diode).')
+ant_b_errors_m4.forget
+# Rule Ant.e (With Diode)
+ant_e_errors_m4 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_m4') >= #{ant_e_ratio})")
+ant_e_errors_m4.output('Ant.e_M4', '7.1 Ant.e up to M4: Cumulative metal antenna ratio check (with diode).')
+ant_e_errors_m4.forget
 
 # Check after Metal 5
-ar_all_layers.evaluate("put('sum_m1_m5', value('sum_m1_m4') + value('m5_ratio'))", {}, true) # Cumulative M1-M5
-violation_expr_m5 = "(value('has_diode') == 0 && value('sum_m1_m5') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_m1_m5') >= ar_max_with_diode)"
-ant_be_errors_m5 = ar_all_layers.selected_if(violation_expr_m5, { 'ar_max_no_diode' => ant_b_ratio, 'ar_max_with_diode' => ant_e_ratio })
-ant_be_errors_m5.output('Ant.b_and_Ant.e_M5', '7.1 Ant.b/e up to M5: Cumulative metal antenna ratio check.')
-ant_be_errors_m5.forget
+ar_all_layers.evaluate("put('sum_m1_m5', value('sum_m1_m4') + value('m5_ratio'))", {}, true)
+# Rule Ant.b (No Diode)
+ant_b_errors_m5 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_m5') >= #{ant_b_ratio})")
+ant_b_errors_m5.output('Ant.b_M5', '7.1 Ant.b up to M5: Cumulative metal antenna ratio check (no diode).')
+ant_b_errors_m5.forget
+# Rule Ant.e (With Diode)
+ant_e_errors_m5 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_m5') >= #{ant_e_ratio})")
+ant_e_errors_m5.output('Ant.e_M5', '7.1 Ant.e up to M5: Cumulative metal antenna ratio check (with diode).')
+ant_e_errors_m5.forget
 
 # Check after TopMetal 1
-ar_all_layers.evaluate("put('sum_m1_tm1', value('sum_m1_m5') + value('tm1_ratio'))", {}, true) # Cumulative M1-TM1
-violation_expr_tm1 = "(value('has_diode') == 0 && value('sum_m1_tm1') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_m1_tm1') >= ar_max_with_diode)"
-ant_be_errors_tm1 = ar_all_layers.selected_if(violation_expr_tm1, { 'ar_max_no_diode' => ant_b_ratio, 'ar_max_with_diode' => ant_e_ratio })
-ant_be_errors_tm1.output('Ant.b_and_Ant.e_TM1', '7.1 Ant.b/e up to TM1: Cumulative metal antenna ratio check.')
-ant_be_errors_tm1.forget
+ar_all_layers.evaluate("put('sum_m1_tm1', value('sum_m1_m5') + value('tm1_ratio'))", {}, true)
+# Rule Ant.b (No Diode)
+ant_b_errors_tm1 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_tm1') >= #{ant_b_ratio})")
+ant_b_errors_tm1.output('Ant.b_TM1', '7.1 Ant.b up to TM1: Cumulative metal antenna ratio check (no diode).')
+ant_b_errors_tm1.forget
+# Rule Ant.e (With Diode)
+ant_e_errors_tm1 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_tm1') >= #{ant_e_ratio})")
+ant_e_errors_tm1.output('Ant.e_TM1', '7.1 Ant.e up to TM1: Cumulative metal antenna ratio check (with diode).')
+ant_e_errors_tm1.forget
 
 # Check after TopMetal 2
-ar_all_layers.evaluate("put('sum_m1_tm2', value('sum_m1_tm1') + value('tm2_ratio'))", {}, true) # Cumulative M1-TM2
-violation_expr_tm2 = "(value('has_diode') == 0 && value('sum_m1_tm2') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_m1_tm2') >= ar_max_with_diode)"
-ant_be_errors_tm2 = ar_all_layers.selected_if(violation_expr_tm2, { 'ar_max_no_diode' => ant_b_ratio, 'ar_max_with_diode' => ant_e_ratio })
-ant_be_errors_tm2.output('Ant.b_and_Ant.e_TM2', '7.1 Ant.b/e up to TM2: Cumulative metal antenna ratio check.')
-ant_be_errors_tm2.forget
+ar_all_layers.evaluate("put('sum_m1_tm2', value('sum_m1_tm1') + value('tm2_ratio'))", {}, true)
+# Rule Ant.b (No Diode)
+ant_b_errors_tm2 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_tm2') >= #{ant_b_ratio})")
+ant_b_errors_tm2.output('Ant.b_TM2', '7.1 Ant.b up to TM2: Cumulative metal antenna ratio check (no diode).')
+ant_b_errors_tm2.forget
+# Rule Ant.e (With Diode)
+ant_e_errors_tm2 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_tm2') >= #{ant_e_ratio})")
+ant_e_errors_tm2.output('Ant.e_TM2', '7.1 Ant.e up to TM2: Cumulative metal antenna ratio check (with diode).')
+ant_e_errors_tm2.forget
 ar_all_layers.forget
 
 # Rules Ant.d & Ant.f (Vias)
@@ -540,47 +599,72 @@ ar_all_vias = (ar_v1 + ar_v2 + ar_v3 + ar_v4 + ar_tv1 + ar_tv2 + diode_presence)
 ar_v1.forget; ar_v2.forget; ar_v3.forget; ar_v4.forget; ar_tv1.forget; ar_tv2.forget; diode_presence.forget
 
 # Check after Via 1
-ar_all_vias.evaluate("put('sum_v1', value('v1_ratio'))", {}, true) # Cumulative V1
-violation_expr_v1 = "(value('has_diode') == 0 && value('sum_v1') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_v1') >= ar_max_with_diode)"
-ant_df_errors_v1 = ar_all_vias.selected_if(violation_expr_v1, { 'ar_max_no_diode' => ant_d_ratio, 'ar_max_with_diode' => ant_f_ratio })
-ant_df_errors_v1.output('Ant.d_and_Ant.f_V1', '7.1 Ant.d/f up to V1: Cumulative via antenna ratio check.')
-ant_df_errors_v1.forget
+ar_all_vias.evaluate("put('sum_v1', value('v1_ratio'))", {}, true)
+# Rule Ant.d (No Diode)
+ant_d_errors_v1 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1') >= #{ant_d_ratio})")
+ant_d_errors_v1.output('Ant.d_V1', '7.1 Ant.d up to V1: Cumulative via antenna ratio check (no diode).')
+ant_d_errors_v1.forget
+# Rule Ant.f (With Diode)
+ant_f_errors_v1 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1') >= #{ant_f_ratio})")
+ant_f_errors_v1.output('Ant.f_V1', '7.1 Ant.f up to V1: Cumulative via antenna ratio check (with diode).')
+ant_f_errors_v1.forget
 
 # Check after Via 2
-ar_all_vias.evaluate("put('sum_v1_v2', value('sum_v1') + value('v2_ratio'))", {}, true) # Cumulative V1+V2
-violation_expr_v2 = "(value('has_diode') == 0 && value('sum_v1_v2') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_v1_v2') >= ar_max_with_diode)"
-ant_df_errors_v2 = ar_all_vias.selected_if(violation_expr_v2, { 'ar_max_no_diode' => ant_d_ratio, 'ar_max_with_diode' => ant_f_ratio })
-ant_df_errors_v2.output('Ant.d_and_Ant.f_V2', '7.1 Ant.d/f up to V2: Cumulative via antenna ratio check.')
-ant_df_errors_v2.forget
+ar_all_vias.evaluate("put('sum_v1_v2', value('sum_v1') + value('v2_ratio'))", {}, true)
+# Rule Ant.d (No Diode)
+ant_d_errors_v2 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1_v2') >= #{ant_d_ratio})")
+ant_d_errors_v2.output('Ant.d_V2', '7.1 Ant.d up to V2: Cumulative via antenna ratio check (no diode).')
+ant_d_errors_v2.forget
+# Rule Ant.f (With Diode)
+ant_f_errors_v2 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1_v2') >= #{ant_f_ratio})")
+ant_f_errors_v2.output('Ant.f_V2', '7.1 Ant.f up to V2: Cumulative via antenna ratio check (with diode).')
+ant_f_errors_v2.forget
 
 # Check after Via 3
-ar_all_vias.evaluate("put('sum_v1_v3', value('sum_v1_v2') + value('v3_ratio'))", {}, true) # Cumulative V1-V3
-violation_expr_v3 = "(value('has_diode') == 0 && value('sum_v1_v3') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_v1_v3') >= ar_max_with_diode)"
-ant_df_errors_v3 = ar_all_vias.selected_if(violation_expr_v3, { 'ar_max_no_diode' => ant_d_ratio, 'ar_max_with_diode' => ant_f_ratio })
-ant_df_errors_v3.output('Ant.d_and_Ant.f_V3', '7.1 Ant.d/f up to V3: Cumulative via antenna ratio check.')
-ant_df_errors_v3.forget
+ar_all_vias.evaluate("put('sum_v1_v3', value('sum_v1_v2') + value('v3_ratio'))", {}, true)
+# Rule Ant.d (No Diode)
+ant_d_errors_v3 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1_v3') >= #{ant_d_ratio})")
+ant_d_errors_v3.output('Ant.d_V3', '7.1 Ant.d up to V3: Cumulative via antenna ratio check (no diode).')
+ant_d_errors_v3.forget
+# Rule Ant.f (With Diode)
+ant_f_errors_v3 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1_v3') >= #{ant_f_ratio})")
+ant_f_errors_v3.output('Ant.f_V3', '7.1 Ant.f up to V3: Cumulative via antenna ratio check (with diode).')
+ant_f_errors_v3.forget
 
 # Check after Via 4
-ar_all_vias.evaluate("put('sum_v1_v4', value('sum_v1_v3') + value('v4_ratio'))", {}, true) # Cumulative V1-V4
-violation_expr_v4 = "(value('has_diode') == 0 && value('sum_v1_v4') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_v1_v4') >= ar_max_with_diode)"
-ant_df_errors_v4 = ar_all_vias.selected_if(violation_expr_v4, { 'ar_max_no_diode' => ant_d_ratio, 'ar_max_with_diode' => ant_f_ratio })
-ant_df_errors_v4.output('Ant.d_and_Ant.f_V4', '7.1 Ant.d/f up to V4: Cumulative via antenna ratio check.')
-ant_df_errors_v4.forget
+ar_all_vias.evaluate("put('sum_v1_v4', value('sum_v1_v3') + value('v4_ratio'))", {}, true)
+# Rule Ant.d (No Diode)
+ant_d_errors_v4 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1_v4') >= #{ant_d_ratio})")
+ant_d_errors_v4.output('Ant.d_V4', '7.1 Ant.d up to V4: Cumulative via antenna ratio check (no diode).')
+ant_d_errors_v4.forget
+# Rule Ant.f (With Diode)
+ant_f_errors_v4 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1_v4') >= #{ant_f_ratio})")
+ant_f_errors_v4.output('Ant.f_V4', '7.1 Ant.f up to V4: Cumulative via antenna ratio check (with diode).')
+ant_f_errors_v4.forget
 
 # Check after TopVia 1
-ar_all_vias.evaluate("put('sum_v1_tv1', value('sum_v1_v4') + value('tv1_ratio'))", {}, true) # Cumulative V1-TV1
-violation_expr_tv1 = "(value('has_diode') == 0 && value('sum_v1_tv1') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_v1_tv1') >= ar_max_with_diode)"
-ant_df_errors_tv1 = ar_all_vias.selected_if(violation_expr_tv1, { 'ar_max_no_diode' => ant_d_ratio, 'ar_max_with_diode' => ant_f_ratio })
-ant_df_errors_tv1.output('Ant.d_and_Ant.f_TV1', '7.1 Ant.d/f up to TV1: Cumulative via antenna ratio check.')
-ant_df_errors_tv1.forget 
+ar_all_vias.evaluate("put('sum_v1_tv1', value('sum_v1_v4') + value('tv1_ratio'))", {}, true)
+# Rule Ant.d (No Diode)
+ant_d_errors_tv1 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1_tv1') >= #{ant_d_ratio})")
+ant_d_errors_tv1.output('Ant.d_TV1', '7.1 Ant.d up to TV1: Cumulative via antenna ratio check (no diode).')
+ant_d_errors_tv1.forget
+# Rule Ant.f (With Diode)
+ant_f_errors_tv1 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1_tv1') >= #{ant_f_ratio})")
+ant_f_errors_tv1.output('Ant.f_TV1', '7.1 Ant.f up to TV1: Cumulative via antenna ratio check (with diode).')
+ant_f_errors_tv1.forget
 
 # Check after TopVia 2
-ar_all_vias.evaluate("put('sum_v1_tv2', value('sum_v1_tv1') + value('tv2_ratio'))", {}, true) # Cumulative V1-TV2
-violation_expr_tv2 = "(value('has_diode') == 0 && value('sum_v1_tv2') >= ar_max_no_diode) || (value('has_diode') == 1 && value('sum_v1_tv2') >= ar_max_with_diode)"
-ant_df_errors_tv2 = ar_all_vias.selected_if(violation_expr_tv2, { 'ar_max_no_diode' => ant_d_ratio, 'ar_max_with_diode' => ant_f_ratio })
-ant_df_errors_tv2.output('Ant.d_and_Ant.f_TV2', '7.1 Ant.d/f up to TV2: Cumulative via antenna ratio check.')
-ant_df_errors_tv2.forget 
-ar_all_vias.forget 
+ar_all_vias.evaluate("put('sum_v1_tv2', value('sum_v1_tv1') + value('tv2_ratio'))", {}, true)
+# Rule Ant.d (No Diode)
+ant_d_errors_tv2 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1_tv2') >= #{ant_d_ratio})")
+ant_d_errors_tv2.output('Ant.d_TV2', '7.1 Ant.d up to TV2: Cumulative via antenna ratio check (no diode).')
+ant_d_errors_tv2.forget
+# Rule Ant.f (With Diode)
+ant_f_errors_tv2 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1_tv2') >= #{ant_f_ratio})")
+ant_f_errors_tv2.output('Ant.f_TV2', '7.1 Ant.f up to TV2: Cumulative via antenna ratio check (with diode).')
+ant_f_errors_tv2.forget
+ar_all_vias.forget
+
 
 # Rule Ant.g: Minimum Diode Size
 logger.info('Executing rule Ant.g')
