@@ -5,7 +5,7 @@ V {}
 S {}
 E {}
 B 2 1030 -1700 1830 -1300 {flags=graph
-y1=-0.92
+y1=-11
 
 ypos1=0
 ypos2=2
@@ -26,11 +26,11 @@ logx=0
 logy=0
 
 
-y2=13
+y2=0.65
 color=4
 node=vin1}
 B 2 1020 -1280 1820 -880 {flags=graph
-y1=12
+y1=0.28
 
 ypos1=0
 ypos2=2
@@ -51,7 +51,7 @@ logx=0
 logy=0
 color=10
 node=vin2
-y2=13}
+y2=0.29}
 N 560 -930 560 -910 {
 lab=GND}
 N 560 -1050 560 -990 {
