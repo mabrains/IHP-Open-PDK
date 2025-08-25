@@ -518,7 +518,7 @@ def check_layout_path(layout_path: str) -> str:
         )
         exit(1)
 
-    if not layout_path.endswith((".gds", ".gds.gz", "gds2", "gds2.gz", ".oas")):
+    if not layout_path.lower().endswith((".gds", ".gds.gz", "gds2", "gds2.gz", ".oas")):
         logging.error(
             f"Layout '{layout_path}' is not in GDSII (.gds, .gds.gz, .gds2, gds2.gz) "
             f"or OASIS (.oas) format. Please use a supported format."
