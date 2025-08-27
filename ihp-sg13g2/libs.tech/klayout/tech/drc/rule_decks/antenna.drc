@@ -149,27 +149,6 @@ logger.info("CONNECTIVITY_RULES enabled: #{CONNECTIVITY_RULES} for table #{TABLE
 #------------- LAYERS DEFINITIONS ---------------
 #================================================
 
-# frozen_string_literal: true
-
-#=========================================================================================
-# Copyright 2025 IHP PDK Authors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#=========================================================================================
-#================================================
-#------------- LAYERS DEFINITIONS ---------------
-#================================================
-
 polygons_count = 0
 logger.info('Read in polygons from layers.')
 
@@ -333,7 +312,6 @@ end
 # Extract DRC rules values from the JSON file
 drc_rules = get_drc_values(logger)
 
-
 #================================================
 #-------------- COMMON DERIVATIONS --------------
 #================================================
@@ -348,19 +326,19 @@ chip_l = chip_bbox.height
 logger.info("Total area of the design is #{chip_area} um^2.")
 logger.info("The design dimensions are #{chip_w} µm * #{chip_l} µm.")
 
-# Enable tiling if chip area exceeds 100,000 µm²
-en_tiles = chip_area > 1_000_000.um2
-
 # === General Derivations ===
 logger.info('Starting general IHP-SG13G2 derivations.')
 
-# Pwell
-logger.info('Starting Pwell derivations')
-pwell_allowed = CHIP.not(pwell_block)
-digisub_gap = digisub_drw.not(digisub_drw.sized(-1.nm))
-pwell = pwell_allowed.not(nwell_drw).not(digisub_gap)
+# Base
+gate = gatpoly_drw.and(activ_drw)
+poly_on_field = gatpoly_drw.not(activ_drw)
+nactiv  = activ_drw.not(psd_drw.join(nsd_block))
+pactiv  = activ_drw.and(psd_drw)
 
-
+# Diode
+dantenna = nactiv.and(recog_diode).not(nwell_drw)
+dpantenna = pactiv.and(recog_diode).and(nwell_drw)
+diode = dantenna.or(dpantenna)
 
 #================================================
 #----------------- MAIN RUNSET ------------------
@@ -368,303 +346,202 @@ pwell = pwell_allowed.not(nwell_drw).not(digisub_gap)
 
 logger.info('Starting IHP-SG13G2 DRC rules.')
 
-# === FEOL ===
-logger.info('Running all FEOL rules') if FEOL
-# === BEOL ===
-logger.info('Running all BEOL rules') if BEOL
+# ===============================================================
+# ---------------------- 7.1 Antenna Rules ----------------------
+# ===============================================================
 
-if BEOL
-  #================================================
-  #----------------- 7.1 Antenna Rules ------------
-  #================================================
+logger.info('Starting 7.1 Antenna Rules table')
 
-  logger.info('Starting 7.1 Antenna Rules table')
-  nactiv  = activ_drw.not(psd_drw.join(nsd_block))
-  pactiv  = activ_drw.and(psd_drw)
-  # Antenna Rules Derivations
-  #poly_con      = gatpoly_drw.not(res_mk)
-  gate = gatpoly_drw.and(activ_drw) # The gate is the intersection of the gate poly and the active layer
-  poly_on_field = gatpoly_drw.not(activ_drw) # GatPoly over Field Oxide: GatPoly that is not over Activ
-  dantenna = nactiv.and(recog_diode).and(pwell)
-  dpantenna = pactiv.and(recog_diode).and(nwell_drw)
-  diode = dantenna.or(dpantenna) # Diode is either dantenna or dpantenna
-  
-  # Initial Connectivity
-  connect(poly_on_field, gate)
-  connect(gate, cont_drw)
-  connect(poly_on_field, cont_drw)
-  connect(diode, cont_drw)
 
-  # Rule Ant.a: Max. ratio of GatPoly over field oxide area to connected Gate area
+# =====================================
+# -------------- Ant.a/c --------------
+# =====================================
 
-  logger.info('Executing rule Ant.a')
+# Initial Connectivity
+connect(poly_on_field, gate)
+connect(gate, cont_drw)
+connect(poly_on_field, cont_drw)
+connect(diode, cont_drw)
 
-  ant_a_ratio = drc_rules['Ant_a'].to_f # Get the Ant.a ratio from the JSON rules
-  ant_a_errors = antenna_check(gate, poly_on_field, ant_a_ratio)
-  ant_a_errors.output('Ant.a', "7.1 Ant.a: Max. ratio of GatPoly over field oxide area to connected Gate area: #{ant_a_ratio}")
+# Rule Ant.a: Max. ratio of GatPoly over field oxide area to connected Gate area
+logger.info('Executing rule Ant.a')
+ant_a_ratio = drc_rules['Ant_a'].to_f
+ant_a_errors = antenna_check(gate, poly_on_field, ant_a_ratio)
+ant_a_errors.output('Ant.a', "7.1 Ant.a: Max. ratio of GatPoly over field oxide area to connected Gate area: #{ant_a_ratio}")
 
-# Rule Ant.c: Contact Area Ratio
+# Rule Ant.c: Max. ratio of Cont area to connected Gate area
 logger.info('Executing rule Ant.c')
-ant_c_ratio = drc_rules['Ant_c'].to_f # Get the Ant.c ratio from the JSON rules
-
-# Filter for violations and output
+ant_c_ratio = drc_rules['Ant_c'].to_f
 ant_c_errors = antenna_check(gate, cont_drw, ant_c_ratio)
 ant_c_errors.output('Ant.c', "7.1 Ant.c: Max. ratio of Cont area to connected Gate area: #{ant_c_ratio}")
 
-# Cumulative Antenna Ratio Calculations: For Ant.b, Ant.e
-logger.info('Calculating cumulative antenna ratios')
+# ===============================================
+# -------------- Ant.b/e & Ant.d/f --------------
+# ===============================================
 
-# Check Metal 1
-connect(cont_drw, metal1_drw)
-ar_m1 = evaluate_nets(gate, { 'm' => metal1_drw }, "put('m1_ratio', area(m) / area)")
+# Cumulative Antenna Ratio Calculations
+logger.info('Starting cumulative antenna ratio calculations')
 
-logger.info('Evaluated metal1 ratio')
+# Define the sequence of layers with metadata
+layers = [
+  [:metal1_drw,    'm1_ratio',  'm'],
+  [:via1_drw,      'v1_ratio',  'v'],
+  [:metal2_drw,    'm2_ratio',  'm'],
+  [:via2_drw,      'v2_ratio',  'v'],
+  [:metal3_drw,    'm3_ratio',  'm'],
+  [:via3_drw,      'v3_ratio',  'v'],
+  [:metal4_drw,    'm4_ratio',  'm'],
+  [:via4_drw,      'v4_ratio',  'v'],
+  [:metal5_drw,    'm5_ratio',  'm'],
+  [:topvia1_drw,   'tv1_ratio', 'v'],
+  [:topmetal1_drw, 'tm1_ratio', 'm'],
+  [:topvia2_drw,   'tv2_ratio', 'v'],
+  [:topmetal2_drw, 'tm2_ratio', 'm']
+]
 
-# Connect and Check Via 1
-connect(metal1_drw, via1_drw)
-ar_v1 = evaluate_nets(gate, { 'v' => via1_drw }, "put('v1_ratio', area(v) / area)")
+# Container for all antenna ratios
+antenna_ratios = {}
 
-logger.info('Evaluated via1 ratio')
+# Start with contact → metal1
+previous = :cont_drw
 
-# Connect and Check Metal 2
-connect(via1_drw, metal2_drw)
-ar_m2 = evaluate_nets(gate, { 'm' => metal2_drw }, "put('m2_ratio', area(m) / area)")
+layers.each do |layer, ratio_name, var|
+  logger.info("Evaluating #{layer} ratio")
 
-logger.info('Evaluated metal2 ratio')
+  # Connect previous layer to current
+  connect(eval(previous.to_s), eval(layer.to_s))
 
-# Connect and Check Via 2
-connect(metal2_drw, via2_drw)
-ar_v2 = evaluate_nets(gate, { 'v' => via2_drw }, "put('v2_ratio', area(v) / area)")
+  # Compute ratio and store in hash
+  antenna_ratios[ratio_name] = evaluate_nets(
+    gate,
+    { var => eval(layer.to_s) },
+    "put('#{ratio_name}', area(#{var}) / area)"
+  )
 
-logger.info('Evaluated via2 ratio')
+  previous = layer
+end
 
-# Connect and Check Metal 3
-connect(via2_drw, metal3_drw)
-ar_m3 = evaluate_nets(gate, { 'm' => metal3_drw }, "put('m3_ratio', area(m) / area)")
-
-logger.info('Evaluated metal3 ratio')
-
-# Connect and Check Via 3
-connect(metal3_drw, via3_drw)
-ar_v3 = evaluate_nets(gate, { 'v' => via3_drw }, "put('v3_ratio', area(v) / area)")
-
-logger.info('Evaluated via3 ratio')
-
-# Connect and Check Metal 4
-connect(via3_drw, metal4_drw)
-ar_m4 = evaluate_nets(gate, { 'm' => metal4_drw }, "put('m4_ratio', area(m) / area)")
-
-logger.info('Evaluated metal4 ratio')
-
-# Connect and Check Via 4
-connect(metal4_drw, via4_drw)
-ar_v4 = evaluate_nets(gate, { 'v' => via4_drw }, "put('v4_ratio', area(v) / area)")
-
-logger.info('Evaluated via4 ratio')
-
-# Connect and Check Metal 5
-connect(via4_drw, metal5_drw)
-ar_m5 = evaluate_nets(gate, { 'm' => metal5_drw }, "put('m5_ratio', area(m) / area)")
-
-logger.info('Evaluated metal5 ratio')
-
-# Connect and Check TopVia 1
-connect(metal5_drw, topvia1_drw)
-ar_tv1 = evaluate_nets(gate, { 'v' => topvia1_drw }, "put('tv1_ratio', area(v) / area)")
-
-logger.info('Evaluated topvia1 ratio')
-
-# Connect and Check TopMetal 1
-connect(topvia1_drw, topmetal1_drw)
-ar_tm1 = evaluate_nets(gate, { 'm' => topmetal1_drw }, "put('tm1_ratio', area(m) / area)")
-
-logger.info('Evaluated topmetal1 ratio')
-
-# Connect and Check TopVia 2
-connect(topmetal1_drw, topvia2_drw)
-ar_tv2 = evaluate_nets(gate, { 'v' => topvia2_drw }, "put('tv2_ratio', area(v) / area)")
-
-
-logger.info('Evaluated topvia2 ratio')
-
-
-# Connect and Check TopMetal 2
-connect(topvia2_drw, topmetal2_drw)
-ar_tm2 = evaluate_nets(gate, { 'm' => topmetal2_drw }, "put('tm2_ratio', area(m) / area)")
-
-logger.info('Evaluated topmetal2 ratio')
-
-# Check for diode presence
+# diode existence flag
+logger.info('Evaluating diode presence')
 diode_presence = evaluate_nets(gate, { 'd' => diode }, "put('has_diode', area(d) > 0.16 ? 1 : 0)")
 
-
-# Log the diode presence evaluation
-logger.info('Evaluated diode presence')
-
-# Rules Ant.b & Ant.e: Cumulative Metal Area Ratio (with and without Diode)
-logger.info('Executing rules Ant.b and Ant.e step-by-step for each metal layer')
-
-ant_b_ratio = drc_rules['Ant_b'].to_f # Get the Ant.b ratio from the JSON rules
-ant_e_ratio = drc_rules['Ant_e'].to_f # Get the Ant.e ratio from the JSON rules
-
 # Create a base layer with all individual ratios and the diode flag
-ar_all_layers = (ar_m1 + ar_m2 + ar_m3 + ar_m4 + ar_m5 + ar_tm1 + ar_tm2 + diode_presence).merged_props
-ar_m1.forget; ar_m2.forget; ar_m3.forget; ar_m4.forget; ar_m5.forget; ar_tm1.forget; ar_tm2.forget;
+logger.info('Creating base layer with all individual ratios and diode flag')
+ar_all_layers = (antenna_ratios.values.reduce(:+) + diode_presence).merged_props
+antenna_ratios.values.each(&:forget)
+diode_presence.forget
 
-# Check after Metal 1
-# Rule Ant.b (No Diode)
-ant_b_errors_m1 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('m1_ratio') >= #{ant_b_ratio})")
-ant_b_errors_m1.output('Ant.b_M1', '7.1 Ant.b up to M1: Cumulative metal antenna ratio check (no diode).')
-ant_b_errors_m1.forget
-# Rule Ant.e (With Diode)
-ant_e_errors_m1 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('m1_ratio') >= #{ant_e_ratio})")
-ant_e_errors_m1.output('Ant.e_M1', '7.1 Ant.e up to M1: Cumulative metal antenna ratio check (with diode).')
-ant_e_errors_m1.forget
+# ====================================
+# -------------- Ant.b/e -------------
+# ====================================
 
-# Check after Metal 2
-ar_all_layers.evaluate("put('sum_m1_m2', value('m1_ratio') + value('m2_ratio'))", {}, true)
-# Rule Ant.b (No Diode)
-ant_b_errors_m2 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_m2') >= #{ant_b_ratio})")
-ant_b_errors_m2.output('Ant.b_M2', '7.1 Ant.b up to M2: Cumulative metal antenna ratio check (no diode).')
-ant_b_errors_m2.forget
-# Rule Ant.e (With Diode)
-ant_e_errors_m2 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_m2') >= #{ant_e_ratio})")
-ant_e_errors_m2.output('Ant.e_M2', '7.1 Ant.e up to M2: Cumulative metal antenna ratio check (with diode).')
-ant_e_errors_m2.forget
+# Ant.b: Max. ratio of cumulative metal area (from Metal1 to TopMetal2) to connected Gate area (without protection diode)
+# Ant.e: Max. ratio of cumulative metal area (from Metal1 to TopMetal2) to connected Gate area (with protection diode)
+logger.info('Executing rules Ant.b and Ant.e')
 
-# Check after Metal 3
-ar_all_layers.evaluate("put('sum_m1_m3', value('sum_m1_m2') + value('m3_ratio'))", {}, true)
-# Rule Ant.b (No Diode)
-ant_b_errors_m3 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_m3') >= #{ant_b_ratio})")
-ant_b_errors_m3.output('Ant.b_M3', '7.1 Ant.b up to M3: Cumulative metal antenna ratio check (no diode).')
-ant_b_errors_m3.forget
-# Rule Ant.e (With Diode)
-ant_e_errors_m3 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_m3') >= #{ant_e_ratio})")
-ant_e_errors_m3.output('Ant.e_M3', '7.1 Ant.e up to M3: Cumulative metal antenna ratio check (with diode).')
-ant_e_errors_m3.forget
+# Get the Ant.b/e ratio from the JSON rules
+ant_b_ratio = drc_rules['Ant_b'].to_f 
+ant_e_ratio = drc_rules['Ant_e'].to_f
 
-# Check after Metal 4
-ar_all_layers.evaluate("put('sum_m1_m4', value('sum_m1_m3') + value('m4_ratio'))", {}, true)
-# Rule Ant.b (No Diode)
-ant_b_errors_m4 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_m4') >= #{ant_b_ratio})")
-ant_b_errors_m4.output('Ant.b_M4', '7.1 Ant.b up to M4: Cumulative metal antenna ratio check (no diode).')
-ant_b_errors_m4.forget
-# Rule Ant.e (With Diode)
-ant_e_errors_m4 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_m4') >= #{ant_e_ratio})")
-ant_e_errors_m4.output('Ant.e_M4', '7.1 Ant.e up to M4: Cumulative metal antenna ratio check (with diode).')
-ant_e_errors_m4.forget
+# Define the cumulative steps
+steps = [
+  { met_name: 'Metal1',    ratio: "m1_ratio" },
+  { met_name: 'Metal2',    ratio: "sum_m1_m2",  add: "m2_ratio" },
+  { met_name: 'Metal3',    ratio: "sum_m1_m3",  add: "m3_ratio" },
+  { met_name: 'Metal4',    ratio: "sum_m1_m4",  add: "m4_ratio" },
+  { met_name: 'Metal5',    ratio: "sum_m1_m5",  add: "m5_ratio" },
+  { met_name: 'TopMetal1', ratio: "sum_m1_tm1", add: "tm1_ratio" },
+  { met_name: 'TopMetal2', ratio: "sum_m1_tm2", add: "tm2_ratio" }
+].freeze
 
-# Check after Metal 5
-ar_all_layers.evaluate("put('sum_m1_m5', value('sum_m1_m4') + value('m5_ratio'))", {}, true)
-# Rule Ant.b (No Diode)
-ant_b_errors_m5 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_m5') >= #{ant_b_ratio})")
-ant_b_errors_m5.output('Ant.b_M5', '7.1 Ant.b up to M5: Cumulative metal antenna ratio check (no diode).')
-ant_b_errors_m5.forget
-# Rule Ant.e (With Diode)
-ant_e_errors_m5 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_m5') >= #{ant_e_ratio})")
-ant_e_errors_m5.output('Ant.e_M5', '7.1 Ant.e up to M5: Cumulative metal antenna ratio check (with diode).')
-ant_e_errors_m5.forget
+# Loop through each step
+steps.each_with_index do |step, idx|
+  met_name  = step[:met_name]
+  ratio = step[:ratio]
 
-# Check after TopMetal 1
-ar_all_layers.evaluate("put('sum_m1_tm1', value('sum_m1_m5') + value('tm1_ratio'))", {}, true)
-# Rule Ant.b (No Diode)
-ant_b_errors_tm1 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_tm1') >= #{ant_b_ratio})")
-ant_b_errors_tm1.output('Ant.b_TM1', '7.1 Ant.b up to TM1: Cumulative metal antenna ratio check (no diode).')
-ant_b_errors_tm1.forget
-# Rule Ant.e (With Diode)
-ant_e_errors_tm1 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_tm1') >= #{ant_e_ratio})")
-ant_e_errors_tm1.output('Ant.e_TM1', '7.1 Ant.e up to TM1: Cumulative metal antenna ratio check (with diode).')
-ant_e_errors_tm1.forget
+  # Add cumulative expression if defined
+  if step[:add]
+    prev_ratio = steps[idx - 1][:ratio]
+    logger.info("Evaluating cumulative ratio after #{met_name}")
+    ar_all_layers.evaluate(
+      "put('#{ratio}', value('#{prev_ratio}') + value('#{step[:add]}'))",
+      {},
+      true
+    )
+  end
 
-# Check after TopMetal 2
-ar_all_layers.evaluate("put('sum_m1_tm2', value('sum_m1_tm1') + value('tm2_ratio'))", {}, true)
-# Rule Ant.b (No Diode)
-ant_b_errors_tm2 = ar_all_layers.selected_if("(value('has_diode') == 0 && value('sum_m1_tm2') >= #{ant_b_ratio})")
-ant_b_errors_tm2.output('Ant.b_TM2', '7.1 Ant.b up to TM2: Cumulative metal antenna ratio check (no diode).')
-ant_b_errors_tm2.forget
-# Rule Ant.e (With Diode)
-ant_e_errors_tm2 = ar_all_layers.selected_if("(value('has_diode') == 1 && value('sum_m1_tm2') >= #{ant_e_ratio})")
-ant_e_errors_tm2.output('Ant.e_TM2', '7.1 Ant.e up to TM2: Cumulative metal antenna ratio check (with diode).')
-ant_e_errors_tm2.forget
-ar_all_layers.forget
+  # Ant.b check (no diode)
+  logger.info("Executing Ant.b_#{met_name}")
+  ant_b = ar_all_layers.selected_if("(value('has_diode') == 0 && value('#{ratio}') >= #{ant_b_ratio})")
+  ant_b.output("Ant.b_#{met_name}", "7.1 Ant.b_#{met_name}: Max. ratio of cumulative #{met_name} area to connected Gate area (without protection diode) = #{ant_b_ratio}.")
+  ant_b.forget
 
-# Rules Ant.d & Ant.f (Vias)
+  # Ant.e check (with diode)
+  logger.info("Executing Ant.e_#{met_name}")
+  ant_e = ar_all_layers.selected_if("(value('has_diode') == 1 && value('#{ratio}') >= #{ant_e_ratio})")
+  ant_e.output("Ant.e_#{met_name}", "7.1 Ant.e_#{met_name}: Max. ratio of cumulative #{met_name} area to connected Gate area (with protection diode) = #{ant_e_ratio}.")
+  ant_e.forget
+end
+
+# ====================================
+# -------------- Ant.d/f -------------
+# ====================================
+
+# Ant.d: Max. ratio of cumulative via area (from Via1 to TopVia2) to connected Gate area (without protection diode)
+# Ant.f: Max. ratio of cumulative via area (from Via1 to TopVia2) to connected Gate area (with protection diode)
+
 logger.info('Executing rules Ant.d and Ant.f')
 
-ant_d_ratio = drc_rules['Ant_d'].to_f # Get the Ant.d ratio from the JSON rules
-ant_f_ratio = drc_rules['Ant_f'].to_f # Get the Ant.f ratio from the JSON rules
+# Get the Ant.d/f ratio from the JSON rules
+ant_d_ratio = drc_rules['Ant_d'].to_f 
+ant_f_ratio = drc_rules['Ant_f'].to_f
 
-# Create a base layer with all individual via ratios and the diode flag
-ar_all_vias = (ar_v1 + ar_v2 + ar_v3 + ar_v4 + ar_tv1 + ar_tv2 + diode_presence).merged_props
-ar_v1.forget; ar_v2.forget; ar_v3.forget; ar_v4.forget; ar_tv1.forget; ar_tv2.forget; diode_presence.forget
+# Define the cumulative steps for vias
+via_steps = [
+  { via_name: 'Via1',    ratio: "sum_v1",     add: "v1_ratio", first: true },
+  { via_name: 'Via2',    ratio: "sum_v1_v2",  add: "v2_ratio" },
+  { via_name: 'Via3',    ratio: "sum_v1_v3",  add: "v3_ratio" },
+  { via_name: 'Via4',    ratio: "sum_v1_v4",  add: "v4_ratio" },
+  { via_name: 'TopVia1', ratio: "sum_v1_tv1", add: "tv1_ratio" },
+  { via_name: 'TopVia2', ratio: "sum_v1_tv2", add: "tv2_ratio" }
+].freeze
 
-# Check after Via 1
-ar_all_vias.evaluate("put('sum_v1', value('v1_ratio'))", {}, true)
-# Rule Ant.d (No Diode)
-ant_d_errors_v1 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1') >= #{ant_d_ratio})")
-ant_d_errors_v1.output('Ant.d_V1', '7.1 Ant.d up to V1: Cumulative via antenna ratio check (no diode).')
-ant_d_errors_v1.forget
-# Rule Ant.f (With Diode)
-ant_f_errors_v1 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1') >= #{ant_f_ratio})")
-ant_f_errors_v1.output('Ant.f_V1', '7.1 Ant.f up to V1: Cumulative via antenna ratio check (with diode).')
-ant_f_errors_v1.forget
+# Loop through each via step
+via_steps.each_with_index do |step, idx|
+  via_name  = step[:via_name]
+  ratio = step[:ratio]
 
-# Check after Via 2
-ar_all_vias.evaluate("put('sum_v1_v2', value('sum_v1') + value('v2_ratio'))", {}, true)
-# Rule Ant.d (No Diode)
-ant_d_errors_v2 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1_v2') >= #{ant_d_ratio})")
-ant_d_errors_v2.output('Ant.d_V2', '7.1 Ant.d up to V2: Cumulative via antenna ratio check (no diode).')
-ant_d_errors_v2.forget
-# Rule Ant.f (With Diode)
-ant_f_errors_v2 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1_v2') >= #{ant_f_ratio})")
-ant_f_errors_v2.output('Ant.f_V2', '7.1 Ant.f up to V2: Cumulative via antenna ratio check (with diode).')
-ant_f_errors_v2.forget
+  # Build cumulative ratio
+  if step[:first]
+    logger.info("Evaluating cumulative ratio after #{via_name}")
+    ar_all_layers.evaluate(
+      "put('#{ratio}', value('#{step[:add]}'))",
+      {},
+      true
+    )
+  else
+    prev_ratio = via_steps[idx - 1][:ratio]
+    logger.info("Evaluating cumulative ratio after #{via_name}")
+    ar_all_layers.evaluate(
+      "put('#{ratio}', value('#{prev_ratio}') + value('#{step[:add]}'))",
+      {},
+      true
+    )
+  end
 
-# Check after Via 3
-ar_all_vias.evaluate("put('sum_v1_v3', value('sum_v1_v2') + value('v3_ratio'))", {}, true)
-# Rule Ant.d (No Diode)
-ant_d_errors_v3 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1_v3') >= #{ant_d_ratio})")
-ant_d_errors_v3.output('Ant.d_V3', '7.1 Ant.d up to V3: Cumulative via antenna ratio check (no diode).')
-ant_d_errors_v3.forget
-# Rule Ant.f (With Diode)
-ant_f_errors_v3 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1_v3') >= #{ant_f_ratio})")
-ant_f_errors_v3.output('Ant.f_V3', '7.1 Ant.f up to V3: Cumulative via antenna ratio check (with diode).')
-ant_f_errors_v3.forget
+  # Ant.d check (no diode)
+  logger.info("Executing Ant.d_#{via_name}")
+  ant_d = ar_all_layers.selected_if("(value('has_diode') == 0 && value('#{ratio}') >= #{ant_d_ratio})")
+  ant_d.output("Ant.d_#{via_name}", "7.1 Ant.d_#{via_name}: Max. ratio of cumulative #{via_name} area to connected Gate area (without protection diode) = #{ant_d_ratio}.")
+  ant_d.forget
 
-# Check after Via 4
-ar_all_vias.evaluate("put('sum_v1_v4', value('sum_v1_v3') + value('v4_ratio'))", {}, true)
-# Rule Ant.d (No Diode)
-ant_d_errors_v4 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1_v4') >= #{ant_d_ratio})")
-ant_d_errors_v4.output('Ant.d_V4', '7.1 Ant.d up to V4: Cumulative via antenna ratio check (no diode).')
-ant_d_errors_v4.forget
-# Rule Ant.f (With Diode)
-ant_f_errors_v4 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1_v4') >= #{ant_f_ratio})")
-ant_f_errors_v4.output('Ant.f_V4', '7.1 Ant.f up to V4: Cumulative via antenna ratio check (with diode).')
-ant_f_errors_v4.forget
-
-# Check after TopVia 1
-ar_all_vias.evaluate("put('sum_v1_tv1', value('sum_v1_v4') + value('tv1_ratio'))", {}, true)
-# Rule Ant.d (No Diode)
-ant_d_errors_tv1 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1_tv1') >= #{ant_d_ratio})")
-ant_d_errors_tv1.output('Ant.d_TV1', '7.1 Ant.d up to TV1: Cumulative via antenna ratio check (no diode).')
-ant_d_errors_tv1.forget
-# Rule Ant.f (With Diode)
-ant_f_errors_tv1 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1_tv1') >= #{ant_f_ratio})")
-ant_f_errors_tv1.output('Ant.f_TV1', '7.1 Ant.f up to TV1: Cumulative via antenna ratio check (with diode).')
-ant_f_errors_tv1.forget
-
-# Check after TopVia 2
-ar_all_vias.evaluate("put('sum_v1_tv2', value('sum_v1_tv1') + value('tv2_ratio'))", {}, true)
-# Rule Ant.d (No Diode)
-ant_d_errors_tv2 = ar_all_vias.selected_if("(value('has_diode') == 0 && value('sum_v1_tv2') >= #{ant_d_ratio})")
-ant_d_errors_tv2.output('Ant.d_TV2', '7.1 Ant.d up to TV2: Cumulative via antenna ratio check (no diode).')
-ant_d_errors_tv2.forget
-# Rule Ant.f (With Diode)
-ant_f_errors_tv2 = ar_all_vias.selected_if("(value('has_diode') == 1 && value('sum_v1_tv2') >= #{ant_f_ratio})")
-ant_f_errors_tv2.output('Ant.f_TV2', '7.1 Ant.f up to TV2: Cumulative via antenna ratio check (with diode).')
-ant_f_errors_tv2.forget
-ar_all_vias.forget
-
+  # Ant.f check (with diode)
+  logger.info("Executing Ant.f_#{via_name}")
+  ant_f = ar_all_layers.selected_if("(value('has_diode') == 1 && value('#{ratio}') >= #{ant_f_ratio})")
+  ant_f.output("Ant.f_#{via_name}", "7.1 Ant.f_#{via_name}: Max. ratio of cumulative #{via_name} area to connected Gate area (with protection diode) = #{ant_f_ratio}.")
+  ant_f.forget
+end
+ar_all_layers.forget
 
 # Rule Ant.g: Minimum Diode Size
 logger.info('Executing rule Ant.g')
@@ -673,7 +550,5 @@ ant_g_min_area = drc_rules['Ant_g'].to_f # Get the Ant.g minimum area from the J
 
 # Expression to check if actual diode area is less than the greater of the fixed minimum
 ant_g_errors = diode.with_area(0, ant_g_min_area)
-ant_g_errors.output('Ant.g', "7.1 Ant.g: Protection diode size is insufficient. Required area is min #{ant_g_min_area}")
+ant_g_errors.output('Ant.g', "7.1 Ant.g: Min size of protection diode (µm2) = #{ant_g_min_area}")
 ant_g_errors.forget
-
-end
