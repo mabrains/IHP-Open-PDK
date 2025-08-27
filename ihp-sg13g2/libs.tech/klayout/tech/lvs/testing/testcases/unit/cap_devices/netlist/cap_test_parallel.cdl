@@ -1,0 +1,7 @@
+** sch_path: /home/pedersen/LVS_issue/LVS/cap_test.sch
+.SUBCKT cap_test VDD
+*.PININFO VDD:B
+C1 VDD GND cap_cmim w=18.2e-6 l=18.2e-6 m=1
+C6 VDD GND cap_cmim w=14.08e-6 l=14.08e-6 m=1
+C7 VDD GND cap_cmim w=14.08e-6 l=14.08e-6 m=1
+.ENDS
