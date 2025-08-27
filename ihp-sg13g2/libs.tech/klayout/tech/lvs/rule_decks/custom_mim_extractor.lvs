@@ -44,6 +44,7 @@ class DeviceCustomMIM < RBA::DeviceClassCapacitor
     ter2 = add_terminal(RBA::DeviceTerminalDefinition.new("mim_btm"))
     ter1.name = "mim_top"
     ter2.name = "mim_btm"
+    self.combiner = MIMCAPNDeviceCombiner.new
 
     # Adding extra param & terminal for rfcmim
     return unless name.downcase.include?('rfcmim')
@@ -76,9 +77,7 @@ class MIMCAPExtractor < RBA::GenericDeviceExtractor
 
     # Disable combination for rfcmim
     if name.downcase.include?('rfcmim')
-      @reg_dev.combiner = nil 
-    else
-      @reg_dev.combiner = MIMCAPNDeviceCombiner.new
+      @reg_dev.combiner = nil
     end
     register_device_class(@reg_dev)
   end
