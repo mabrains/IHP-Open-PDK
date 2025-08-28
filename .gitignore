@@ -189,3 +189,4 @@ run_git-pulse
 # Git-cliff
 cliff*toml
 netlists*/
+mdm*.logs
