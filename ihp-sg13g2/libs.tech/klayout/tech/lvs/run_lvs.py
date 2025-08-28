@@ -237,7 +237,6 @@ def check_lvs_results(results_db_files: list):
     results_db_files : list
         A list of strings that represent paths to results databases of all the LVS runs.
     """
-    print(f"Results db files: {results_db_files}")
     if len(results_db_files) < 1:
         logging.error("Klayout did not generate any db results. Please check run logs")
         exit(1)
@@ -281,7 +280,6 @@ def run_check(lvs_file: str, path: str, run_dir: str, sws: dict):
     sws_str = build_switches_string(new_sws)
 
     run_str = f"klayout -b -r {lvs_file} {sws_str}"
-    print(f"Running command: {run_str}")
     check_call(run_str, shell=True)
 
     return report_path
