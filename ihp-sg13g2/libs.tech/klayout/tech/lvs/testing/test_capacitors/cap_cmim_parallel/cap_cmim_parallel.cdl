@@ -1,6 +1,0 @@
-.SUBCKT TOP NET_1 NET_2
-C1 NET_1 NET_2 cap_cmim w=6.99e-6 l=6.99e-6 m=1
-C2 NET_1 NET_2 cap_cmim w=6.99e-6 l=6.99e-6 m=1
-C3 NET_1 NET_2 cap_cmim w=8.19e-6 l=8.19e-6 m=1
-C4 NET_1 NET_2 cap_cmim w=8.19e-6 l=8.19e-6 m=1
-.ENDS
