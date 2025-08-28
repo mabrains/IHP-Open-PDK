@@ -1,4 +1,0 @@
-.subckt TOP c0 c1
-C1 c0 net1 cap_cmim w=7.0e-6 l=7.0e-6
-C2 c1 net1 cap_cmim w=7.0e-6 l=7.0e-6
-.ends

@@ -74,11 +74,6 @@ class MIMCAPExtractor < RBA::GenericDeviceExtractor
     define_layers
     # Register device class for extraction.
     @reg_dev = DeviceCustomMIM.new(name)
-
-    # Disable combination for rfcmim
-    # if name.downcase.include?('rfcmim')
-    #   @reg_dev.combiner = nil
-    # end
     register_device_class(@reg_dev)
   end
 
