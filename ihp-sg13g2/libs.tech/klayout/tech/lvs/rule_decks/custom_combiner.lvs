@@ -110,8 +110,11 @@ class MIMCAPNDeviceCombiner < RBA::GenericDeviceCombiner
     b.disconnect_terminal('mim_top')
     b.disconnect_terminal('mim_btm')
 
+    # Log the device name for debugging
+    # $logger.info("Combining MIMCAPN devices: #{a.device_class.name} and #{b.device_class.name}")
+
     # Disconnect mim_sub terminal if present and model name includes 'rfcmim'
-    b.disconnect_terminal('mim_sub') if b.name.downcase.include?('rfcmim')
+    b.disconnect_terminal('mim_sub') if b.device_class.name.downcase.include?('rfcmim')
 
     true
   end
