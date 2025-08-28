@@ -267,16 +267,6 @@ count = topmetal2_drw.count
 logger.info("topmetal2_drw has #{count} polygons")
 polygons_count += count
 
-pwell_block = get_polygons(46, 21)
-count = pwell_block.count
-logger.info("pwell_block has #{count} polygons")
-polygons_count += count
-
-digisub_drw = get_polygons(16, 0)
-count = digisub_drw.count
-logger.info("digisub_drw has #{count} polygons")
-polygons_count += count
-
 
 logger.info("Total no. of polygons in the design is #{polygons_count}")
 
@@ -339,12 +329,6 @@ logger.info("The design dimensions are #{chip_w} µm * #{chip_l} µm.")
 
 # === General Derivations ===
 logger.info('Starting general IHP-SG13G2 derivations.')
-
-# Pwell
-logger.info('Starting Pwell derivations')
-pwell_allowed = CHIP.not(pwell_block)
-digisub_gap = digisub_drw.not(digisub_drw.sized(-1.nm))
-pwell = pwell_allowed.not(nwell_drw).not(digisub_gap)
 
 # Base
 gate = gatpoly_drw.and(activ_drw)
