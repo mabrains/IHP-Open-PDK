@@ -44,6 +44,7 @@ class DeviceCustomMIM < RBA::DeviceClassCapacitor
     ter2 = add_terminal(RBA::DeviceTerminalDefinition.new("mim_btm"))
     ter1.name = "mim_top"
     ter2.name = "mim_btm"
+    # Note: combiner is set for both cap_cmim and rfcmim devices
     self.combiner = MIMCAPNDeviceCombiner.new
 
     # Adding extra param & terminal for rfcmim

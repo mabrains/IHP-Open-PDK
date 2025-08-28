@@ -97,13 +97,12 @@ class MIMCAPNDeviceCombiner < RBA::GenericDeviceCombiner
 
   # Method to check and perform device combination
   def combine_devices(a, b)
-    # Check if both devices have the same net
+    # Check if both devices have the same net. Check mim_sub for rfcmim devices.
     return false unless same_net(a, b, 'mim_top') && same_net(a, b, 'mim_btm')
+    return false if a.device_class.name.downcase.include?('rfcmim') && !same_net(a, b, 'mim_sub')
 
     # Check if parameters are the same
     return false unless same_parameter(a, b, 'w') && same_parameter(a, b, 'l')
-    # Check if 'rfcmim' devices have the same 'mim_sub' net
-    return false if a.device_class.name.downcase.include?('rfcmim') && !same_net(a, b, 'mim_sub')
 
 
     # Combine by summing up 'm' parameter
