@@ -281,6 +281,7 @@ def run_check(lvs_file: str, path: str, run_dir: str, sws: dict):
     sws_str = build_switches_string(new_sws)
 
     run_str = f"klayout -b -r {lvs_file} {sws_str}"
+    print(f"Running command: {run_str}")
     check_call(run_str, shell=True)
 
     return report_path
