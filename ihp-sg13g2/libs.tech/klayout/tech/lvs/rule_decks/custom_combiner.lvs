@@ -102,6 +102,9 @@ class MIMCAPNDeviceCombiner < RBA::GenericDeviceCombiner
 
     # Check if parameters are the same
     return false unless same_parameter(a, b, 'w') && same_parameter(a, b, 'l')
+    # Check if 'rfcmim' devices have the same 'mim_sub' net
+    return false if a.device_class.name.downcase.include?('rfcmim') && !same_net(a, b, 'mim_sub')
+
 
     # Combine by summing up 'm' parameter
     a.set_parameter('m', a.parameter('m') + b.parameter('m'))
@@ -109,9 +112,6 @@ class MIMCAPNDeviceCombiner < RBA::GenericDeviceCombiner
     # Disconnect the second device and let the system clean it up
     b.disconnect_terminal('mim_top')
     b.disconnect_terminal('mim_btm')
-
-    # Log the device name for debugging
-    # $logger.info("Combining MIMCAPN devices: #{a.device_class.name} and #{b.device_class.name}")
 
     # Disconnect mim_sub terminal if present and model name includes 'rfcmim'
     b.disconnect_terminal('mim_sub') if b.device_class.name.downcase.include?('rfcmim')
