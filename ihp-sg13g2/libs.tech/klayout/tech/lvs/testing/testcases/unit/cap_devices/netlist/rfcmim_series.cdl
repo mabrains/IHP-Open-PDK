@@ -1,0 +1,4 @@
+.SUBCKT TOP net1 net2 sub
+C1 net1 mid sub rfcmim w=7u l=7u   wfeed=3u
+C2 mid net2 sub rfcmim w=7u l=7u   wfeed=3u
+.ENDS
