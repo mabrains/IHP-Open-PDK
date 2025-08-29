@@ -247,6 +247,11 @@ count = recog_diode.count
 logger.info("recog_diode has #{count} polygons")
 polygons_count += count
 
+recog_esd = get_polygons(99, 30)
+count = recog_esd.count
+logger.info("recog_esd has #{count} polygons")
+polygons_count += count
+
 topvia1_drw = get_polygons(125, 0)
 count = topvia1_drw.count
 logger.info("topvia1_drw has #{count} polygons")
@@ -333,12 +338,12 @@ logger.info('Starting general IHP-SG13G2 derivations.')
 # Base
 gate = gatpoly_drw.and(activ_drw)
 poly_on_field = gatpoly_drw.not(activ_drw)
-nactiv  = activ_drw.not(psd_drw.join(nsd_block))
-pactiv  = activ_drw.and(psd_drw)
+nactiv_con = activ_drw.not(gatpoly_drw).not(psd_drw.join(nsd_block))
+pactiv_con = activ_drw.not(gatpoly_drw).and(psd_drw)
 
 # Diode
-dantenna = nactiv.and(recog_diode).not(nwell_drw)
-dpantenna = pactiv.and(recog_diode).and(nwell_drw)
+dantenna = nactiv_con.and(recog_diode).not(nwell_drw)
+dpantenna = pactiv_con.and(recog_diode).and(nwell_drw)
 diode = dantenna.or(dpantenna)
 
 #================================================
@@ -353,7 +358,6 @@ logger.info('Starting IHP-SG13G2 DRC rules.')
 
 logger.info('Starting 7.1 Antenna Rules table')
 
-
 # =====================================
 # -------------- Ant.a/c --------------
 # =====================================
@@ -362,6 +366,8 @@ logger.info('Starting 7.1 Antenna Rules table')
 connect(poly_on_field, gate)
 connect(gate, cont_drw)
 connect(poly_on_field, cont_drw)
+connect(dantenna, cont_drw)
+connect(dpantenna, cont_drw)
 connect(diode, cont_drw)
 
 # Rule Ant.a: Max. ratio of GatPoly over field oxide area to connected Gate area
@@ -425,6 +431,9 @@ end
 # diode existence flag
 logger.info('Evaluating diode presence')
 diode_presence = evaluate_nets(gate, { 'd' => diode }, "put('has_diode', area(d) > 0.16 ? 1 : 0)")
+diode_presence1 = evaluate_nets(gate, { 'd' => diode }, "put('has_diode', area(d) > 0.16 ? 1 : 0)")
+
+diode_presence1.output('diode_flag', 'Diode presence flag for antenna rules (1 if diode connected, 0 if not).')
 
 # Create a base layer with all individual ratios and the diode flag
 logger.info('Creating base layer with all individual ratios and diode flag')
@@ -546,33 +555,25 @@ ar_all_layers.forget
 
 # Rule Ant.g: Minimum Diode Size
 logger.info('Executing rule Ant.g')
-
-ant_g_min_area = drc_rules['Ant_g'].to_f # Get the Ant.g minimum area from the JSON rules
-
-
-dantenna_connected= antenna_check(dantenna, gate , 0)
-dpantenna_connected= antenna_check(dpantenna, gate , 0)
-
+ant_g_min_area = drc_rules['Ant_g'].to_f
+dantenna_connected= antenna_check(gate, dantenna, 0)
+dpantenna_connected= antenna_check(gate, dpantenna, 0)
 ant_g_l1 = dantenna_connected.with_area(0, ant_g_min_area)
 ant_g_l2 = dpantenna_connected.with_area(0, ant_g_min_area)
-
 ant_g = ant_g_l1.join(ant_g_l2)
 ant_g.output('Ant.g', "7.1 Ant.g: Minimum Size of protection diode (µm²): #{ant_g_min_area}")
-
 ant_g_l1.forget
 ant_g_l2.forget
 ant_g.forget
 
 # Rule Ant.h: dantenna in NWell not allowed
 logger.info('Executing rule Ant.h')
-# dantenna = nactiv.and(recog_diode).not(nwell_drw)
-ant_h_errors = nactiv.and(recog_diode).and(nwell_drw)
+ant_h_errors = nactiv_con.and(recog_diode).not(psd_drw).not(recog_esd).and(nwell_drw)
 ant_h_errors.output('Ant.h', '7.1. Ant.h: dantenna in NWell not allowed.')
 ant_h_errors.forget
 
 # Rule Ant.i: dpantenna in PWell not allowed
 logger.info('Executing rule Ant.i')
-# dpantenna = pactiv.and(recog_diode).and(nwell_drw)
-ant_i_errors = pactiv.and(recog_diode).not(nwell_drw)
+ant_i_errors = pactiv_con.and(recog_diode).not(recog_esd).not(nwell_drw.join(pwell_block))
 ant_i_errors.output('Ant.i', '7.1. Ant.i: dpantenna in PWell not allowed.')
 ant_i_errors.forget
