@@ -66,7 +66,7 @@ logger = MultiLogger.new(stdout_logger, file_logger)
 #----------------- FILE SETUP -------------------
 #================================================
 
-logger.info("Starting running IHP-SG13G2 Klayout DRC runset on #{$input}")
+logger.info("Starting running IHP-SG13G2 Klayout DRC antenna runset on #{$input}")
 logger.info("Ruby Version for klayout: #{RUBY_VERSION}")
 
 if $input
@@ -80,11 +80,11 @@ end
 logger.info('Loading database to memory is complete.')
 
 if $report
-  logger.info("IHP-SG13G2 Klayout DRC runset output at: #{$report}")
+  logger.info("IHP-SG13G2 Klayout DRC antenna runset output at: #{$report}")
   report('DRC Run Report at', $report)
 else
   layout_dir = Pathname.new(RBA::CellView.active.filename).parent.realpath
-  report_path = layout_dir.join('sg13g2_drc_main.lyrdb').to_s
+  report_path = layout_dir.join('sg13g2_drc_antenna.lyrdb').to_s
   logger.info("IHP-SG13G2 Klayout DRC runset output at default location: #{report_path}")
   report('DRC Run Report at', report_path)
 end
@@ -98,10 +98,6 @@ logger.info('Evaluate switches.')
 def bool_check?(obj)
   obj.to_s.downcase == 'true'
 end
-
-TABLE_NAME = $table_name || 'main'
-
-logger.info("table_name selected  #{TABLE_NAME}")
 
 # Run mode setup
 def setup_run_mode(run_mode)
@@ -122,7 +118,7 @@ logger.info("Klayout will use #{$thr} thread(s)")
 
 # Run mode
 setup_run_mode($run_mode)
-logger.info("#{$run_mode} mode is enabled for #{TABLE_NAME} table.")
+logger.info("#{$run_mode} mode is enabled for antenna table.")
 
 # FEOL
 FEOL = !bool_check?($no_feol)
@@ -139,11 +135,6 @@ logger.info("OffGrid enabled: #{OFFGRID}")
 # PreCheck DRC
 PRECHECK_DRC = bool_check?($precheck_drc)
 logger.info("PreCheck DRC enabled: #{PRECHECK_DRC}")
-
-# Connectivity rules
-conn_tables = %w[main nwell nbulay]
-CONNECTIVITY_RULES = conn_tables.include?(TABLE_NAME)
-logger.info("CONNECTIVITY_RULES enabled: #{CONNECTIVITY_RULES} for table #{TABLE_NAME}")
 
 #================================================
 #------------- LAYERS DEFINITIONS ---------------
