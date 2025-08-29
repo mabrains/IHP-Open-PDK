@@ -103,19 +103,6 @@ TABLE_NAME = $table_name || 'main'
 
 logger.info("table_name selected  #{TABLE_NAME}")
 
-# connectivity rules
-CONNECTIVITY_EN = !bool_check?($conn_drc)
-
-conn_tables = %w[main nwell nbulay]
-
-CONNECTIVITY_RULES = if conn_tables.include?(TABLE_NAME) && CONNECTIVITY_EN
-                       true
-                     else
-                       false
-                     end
-
-logger.info("CONNECTIVITY_RULES enabled: #{CONNECTIVITY_RULES}")
-
 # Run mode setup
 def setup_run_mode(run_mode)
   case run_mode
@@ -149,9 +136,14 @@ logger.info("BEOL enabled: #{BEOL}")
 OFFGRID = !bool_check?($no_offgrid)
 logger.info("OffGrid enabled: #{OFFGRID}")
 
-# MinRuleSet
-MaxRuleSet = bool_check?($MaxRuleSet)
-logger.info("Maximum rule set enabled: #{MaxRuleSet}")
+# PreCheck DRC
+PRECHECK_DRC = bool_check?($precheck_drc)
+logger.info("PreCheck DRC enabled: #{PRECHECK_DRC}")
+
+# Connectivity rules
+conn_tables = %w[main nwell nbulay]
+CONNECTIVITY_RULES = conn_tables.include?(TABLE_NAME)
+logger.info("CONNECTIVITY_RULES enabled: #{CONNECTIVITY_RULES} for table #{TABLE_NAME}")
 
 #================================================
 #------------- LAYERS DEFINITIONS ---------------
@@ -162,21 +154,6 @@ logger.info("Maximum rule set enabled: #{MaxRuleSet}")
 #================================================
 # -------------------- UTILS --------------------
 #================================================
-
-# Method to convert glob pattern to a case-insensitive glob-style pattern
-def glob_to_case_insensitive_glob(glob)
-  wildcards = ['*', '?']
-
-  glob.chars.map do |c|
-    if c =~ /[A-Za-z]/
-      "[#{c.upcase}#{c.downcase}]"
-    elsif wildcards.include?(c)
-      c # Keep wildcard characters as they are
-    else
-      Regexp.escape(c)
-    end
-  end.join
-end
 
 # Method to get DRC values from JSON files
 def get_drc_values(logger)
@@ -207,7 +184,7 @@ def get_drc_values(logger)
   # Report any fallback rules used
   missing_keys = default_rules.keys - tech_rules.keys
   unless missing_keys.empty?
-    logger.warn("The following rules values were missing in tech json and default values were used:")
+    logger.warn('The following rules values were missing in tech json and default values were used:')
     missing_keys.each { |rule| logger.warn("  - #{rule}") }
   end
 
@@ -232,13 +209,77 @@ logger.info("Total area of the design is #{chip_area} um^2.")
 logger.info("The design dimensions are #{chip_w} µm * #{chip_l} µm.")
 
 # Enable tiling if chip area exceeds 100,000 µm²
-en_tiles = chip_area > 1000_000.um2
+en_tiles = chip_area > 1_000_000.um2
 
 # === General Derivations ===
 logger.info('Starting general IHP-SG13G2 derivations.')
 
+# Pwell
+logger.info('Starting Pwell derivations')
+pwell_allowed = CHIP.not(pwell_block)
+digisub_gap = digisub_drw.not(digisub_drw.sized(-1.nm))
+pwell = pwell_allowed.not(nwell_drw).not(digisub_gap)
+
+# nBulay
+nbulay_tables = %w[main nbulay nwell activfiller schottkydiode]
+if nbulay_tables.include?(TABLE_NAME)
+  nbulay_gen_sized = nwell_drw.sized(-1.5.um).sized(0.5.um)
+  nbuLay_gen = nbulay_gen_sized.not(nbulay_block.join(res_drw))
+  nbuLay_gen_nbulay = nbuLay_gen.join(nbulay_drw)
+end
+
+# n activ
+nact_pact_tables = %w[main pwellblock gatpoly cont latchup nwell nbulay]
+if nact_pact_tables.include?(TABLE_NAME)
+  logger.info('Starting n-Activ derivations')
+  nactiv  = activ_drw.not(psd_drw.join(nsd_block))
+end
+
+# p activ
+pact_pact_tables = %w[main pwellblock gatpoly cont npnsubstratetie latchup  nwell nbulay]
+if pact_pact_tables.include?(TABLE_NAME)
+  logger.info('Starting p-Activ derivations')
+  pactiv  = activ_drw.and(psd_drw)
+end
+
+# p tap
+ptap_tables = %w[main pwellblock npnsubstratetie latchup nwell nbulay]
+if ptap_tables.include?(TABLE_NAME)
+  logger.info('Starting ptap derivations')
+  ptap = pactiv.and(pwell)
+end
+
+# n tap
+ntap_tables = %w[main nwell nbulay]
+if ntap_tables.include?(TABLE_NAME)
+  logger.info('Starting ntap derivations')
+  ntap = nactiv.and(nwell_drw)
+end
+
+# activ FETs
+pact_fet_tables = %w[main gatpoly nwell nbulay]
+if pact_fet_tables.include?(TABLE_NAME)
+  logger.info('Starting pact FET derivations')
+  pact_fet = pactiv.and(nwell_drw)
+end
+
+nact_fet_tables = %w[main pwellblock gatpoly latchup nwell nbulay]
+if nact_fet_tables.include?(TABLE_NAME)
+  logger.info('Starting nact FET derivations')
+  nact_fet = nactiv.and(pwell)
+end
+
+# Gate FETs
+gate_tables = %w[main gatpoly nwell nbulay]
+if gate_tables.include?(TABLE_NAME)
+  logger.info('Starting Gate derivations')
+  res_mk = polyres_drw.join(res_drw)
+  ngate = nact_fet.and(gatpoly_drw)
+  pgate = pact_fet.and(gatpoly_drw)
+end
+
 # Cont derivations
-cont_tables = %w[main cont contb]
+cont_tables = %w[main cont contbar schottkydiode]
 if cont_tables.include?(TABLE_NAME)
   logger.info('Starting cont/contbar general derivations')
   cont_nseal = cont_drw.not(edgeseal_drw)
@@ -263,94 +304,64 @@ drc_tole = 0.005.um
 #------------- LAYERS CONNECTIONS ---------------
 #================================================
 
+if CONNECTIVITY_RULES
+  logger.info('Starting IHP-SG13G2 DRC connectivity related derivations.')
+
+  # Wells
+  nwell_ring_niso = nwell_drw.with_holes.not(nbulay_drw)
+  nwell_holes = nwell_drw.holes.not(nwell_drw)
+  isoPWell  = nbulay_drw.and(nwell_holes)
+  pwell_sub = pwell.not(isoPWell).join(nwell_ring_niso)
+
+  # conn layers
+  poly_con      = gatpoly_drw.not(res_mk)
+  metal1_con    = metal1_drw.not(metal1_res)
+  metal2_con    = metal2_drw.not(metal2_res)
+  metal3_con    = metal3_drw.not(metal3_res)
+  metal4_con    = metal4_drw.not(metal4_res)
+  metal5_con    = metal5_drw.not(metal5_res)
+  topmetal1_con = topmetal1_drw.not(topmetal1_res).not(ind_drw)
+  topmetal2_con = topmetal2_drw.not(topmetal2_res).not(ind_drw)
+
+  # Mimcap
+  mim_via = vmim_drw.join(topvia1_drw).and(mim_drw)
+  topvia1_n_cap = topvia1_drw.not(mim_via)
+
+  logger.info('Starting IHP-SG13G2 DRC connectivity setup')
+  # Inter-layer
+  connect(pwell_sub, pwell)
+  connect(pwell, ptap)
+  connect(nwell_drw, ntap)
+  connect(cont_drw, nactiv)
+  connect(cont_drw, pactiv)
+  connect(nbulay_drw, nbuLay_gen_nbulay)
+  connect(nbuLay_gen_nbulay, nwell_drw)
+  connect(ntap, cont_drw)
+  connect(ptap, cont_drw)
+  connect(poly_con, cont_drw)
+  connect(nact_fet, cont_drw)
+  connect(pact_fet, cont_drw)
+  connect(cont_drw, metal1_con)
+  connect(metal1_con, via1_drw)
+  connect(via1_drw, metal2_con)
+  connect(metal2_con, via2_drw)
+  connect(via2_drw, metal3_con)
+  connect(metal3_con, via3_drw)
+  connect(via3_drw, metal4_con)
+  connect(metal4_con, via4_drw)
+  connect(via4_drw, metal5_con)
+  connect(metal5_con, topvia1_n_cap)
+  connect(topvia1_n_cap, topmetal1_con)
+  connect(topmetal1_con, topvia2_drw)
+  connect(topvia2_drw, topmetal2_con)
+
+  # nwell nets
+  nwell_nets = nwell_drw.nets
+end
 
 #================================================
 #------------ PRE-DEFINED FUNCTIONS -------------
 #================================================
-
-def unconn_errors_check(net1, net2, unconnected_errors)
-  if !net1 || !net2
-    logger.error("Connectivity check encountered 2 nets that doesn't exist. Potential issue in klayout...")
-  elsif net1.circuit != net2.circuit || net1.cluster_id != net2.cluster_id
-    # unconnected
-    unconnected_errors.data.insert(ep)
-  end
-  unconnected_errors
-end
-
-def get_nets(_data, layer1, layer2, edge_pairs)
-  net1 = l2n_data.probe_net(layer1.data, edge_pairs.first.p1)
-  net2 = l2n_data.probe_net(layer2.data, edge_pairs.second.p1)
-  [net1, net2]
-end
-
-def conn_space_viol(layer, conn_val, mode)
-  connected_output = layer.space(conn_val.um, mode).polygons(0.001.um)
-  singularity_errors = layer.space(0.001.um, mode).polygons(0.001.um)
-  [connected_output, singularity_errors]
-end
-
-def conn_space_check(layer, not_conn_val, mode)
-  unconnected_errors_unfiltered = layer.space(not_conn_val.um, mode)
-  connected_output, singularity_errors = conn_space_viol(layer, conn_val, mode)
-  # Filter out the errors arising from the same net
-  unconnected_errors = DRC::DRCLayer.new(self, RBA::EdgePairs.new)
-  unconnected_errors_unfiltered.data.each do |ep|
-    net1, net2 = get_nets(l2n_data, layer, layer, ep)
-    unconnected_errors = unconn_errors_check(net1, net2, unconnected_errors)
-  end
-  unconnected_output = unconnected_errors.polygons.join(singularity_errors)
-  [connected_output, unconnected_output]
-end
-
-def conn_space_nets(layer, conn_val, not_conn_val, mode)
-  nets = layer.nets
-  connected_output = nets.space(conn_val.um, mode, props_eq).polygons(0.001.um)
-  singularity_errors = nets.space(0.001.um, mode).polygons(0.001.um)
-  unconnected_output = nets.space(not_conn_val.um, mode, props_ne).polygons(0.001.um).join(singularity_errors)
-  [connected_output, unconnected_output]
-end
-
-def conn_space(layer, conn_val, not_conn_val, mode)
-  if layer.respond_to?(:nets) # KLayout version (>=0.28.4) which supports "nets"
-    connected_output, unconnected_output = conn_space_nets(layer, conn_val, not_conn_val, mode)
-  else
-    raise 'ERROR : Wrong connectivity implementation' if conn_val > not_conn_val
-
-    connected_output, unconnected_output = conn_space_check(layer, not_conn_val, mode)
-  end
-  [connected_output, unconnected_output]
-end
-
-def sep_viol_nets(layer1, layer2, conn_val, not_conn_val, mode)
-  connected_output   = layer1.nets.separation(layer2.nets, conn_val.um,     mode, props_eq).polygons(0.001.um)
-  unconnected_output = layer1.nets.separation(layer2.nets, not_conn_val.um, mode, props_ne).polygons(0.001.um)
-  [connected_output, unconnected_output]
-end
-
-def unconn_separation_check(layer1, layer2, not_conn_val, mode)
-  unconnected_errors_unfiltered = layer1.separation(layer2, not_conn_val.um, mode)
-  # Filter out the errors arising from the same net
-  unconnected_errors = DRC::DRCLayer.new(self, RBA::EdgePairs.new)
-  unconnected_errors_unfiltered.data.each do |ep|
-    net1, net2 = get_nets(l2n_data, layer1, layer2, ep)
-    unconnected_errors = unconn_errors(net1, net2, unconnected_errors)
-  end
-  unconnected_errors
-end
-
-def conn_separation(layer1, layer2, conn_val, not_conn_val, mode)
-  if layer1.respond_to?(:nets) # KLayout version (>=0.28.4) which supports "nets"
-    connected_output, unconnected_output = sep_viol_nets(layer1, layer2, conn_val, not_conn_val, mode)
-  else
-    raise 'ERROR : Wrong connectivity implementation' if conn_val > not_conn_val
-
-    connected_output = layer1.separation(layer2, conn_val.um, mode).polygons(0.001.um)
-    unconnected_errors = unconn_separation_check(layer1, layer2, not_conn_val, mode)
-    unconnected_output = unconnected_errors.polygons(0.001.um)
-  end
-  [connected_output, unconnected_output]
-end
 
 def get_circle(polygon_check)
   maybe_circle1 = polygon_check.with_bbox_aspect_ratio(1)

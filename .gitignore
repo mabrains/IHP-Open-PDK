@@ -161,6 +161,7 @@ cython_debug/
 *.raw
 *.la
 *.spice
+*.save
 *.csv
 *.osdi
 *.prn
@@ -190,3 +191,5 @@ run_git-pulse
 cliff*toml
 netlists*/
 mdm*.logs
+# OpneVAF compiled models dir
+*/*/ngspice/osdi

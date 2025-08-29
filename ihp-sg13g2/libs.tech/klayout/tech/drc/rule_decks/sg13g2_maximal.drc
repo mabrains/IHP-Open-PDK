@@ -97,27 +97,23 @@ def bool_check?(obj)
     obj.to_s.downcase == 'true'
   end
 
+# Run mode setup
+def setup_run_mode(run_mode)
+  case run_mode
+  when 'flat'
+    flat
+  else
+    deep
+  end
+end
+
 # threads
 threads($thr.to_i)
 logger.info("Klayout will use #{$thr} thread(s)")
 
-# === TILING MODE ===
-case $run_mode
-## Tiling mode is for testing purpose only [Not used in run_drc.py]
-when 'tiling'
-  tiles(500.um)
-  tile_borders(10.um)
-  logger.info('Tiling  mode is enabled.')
-
-when 'deep'
-  #=== HIER MODE ===
-  deep
-  logger.info("deep  mode is enabled")
-else
-  #=== FLAT MODE ===
-  flat
-  logger.info("flat  mode is enabled")
-end
+# Run mode
+setup_run_mode($run_mode)
+logger.info("#{$run_mode} mode is enabled for sg13g2_maximal runset.")
 
 # Tech switches
 # Initial definitions of control flow variables
@@ -358,6 +354,27 @@ class DRC::DRCEngine
 end
 
 class DRC::DRCLayer
+    def ext_convert_to_edge_pair_layer()
+        return self.collect_to_edge_pairs { |edge|
+            RBA::DEdgePair::new(edge, edge, true)
+        }
+    end
+
+    def ext_merged(min_coherence, overlap_count)
+        args = [min_coherence, overlap_count]
+        return DRCLayer::new(@engine, @engine._tcmd(self.data, 0, self.data.class, :merged, *args))
+    end
+
+    def ext_merge(min_coherence, overlap_count)
+        args = [min_coherence, overlap_count]
+        if @engine.is_tiled?
+            self.data = @engine._tcmd(self.data, 0, self.data.class, :merged, *args)
+        else
+            @engine._tcmd(self.data, 0, self.data.class, :merge, *args)
+        end
+        return self
+    end
+
     def ext_and(other)
         self_min_coherence_state = self.data.min_coherence?
         other_min_coherence_state =  other.data.min_coherence?
@@ -542,7 +559,7 @@ class DRC::DRCLayer
         if other.is_merged?
             merged_other = other
         else
-            merged_other = other.merged(true, 0)
+            merged_other = other.ext_merged(true, 0)
         end
         overlap_filter = @engine.overlapping(merged_other.not_inside(self))
         constraint.each do |expression|
@@ -612,10 +629,9 @@ class DRC::DRCLayer
         self.data.min_coherence = self_min_coherence_state
         other.data.min_coherence = other_min_coherence_state
         if polygons
-            return enclosed_errors.polygons.merge(true, 0)
-        else
-            return enclosed_errors
+            enclosed_errors = enclosed_errors.polygons.ext_merge(true, 0)
         end
+        return enclosed_errors
     end
 
     def ext_enclosed(other,
@@ -674,10 +690,9 @@ class DRC::DRCLayer
         self.data.min_coherence = self_min_coherence_state
         other.data.min_coherence = other_min_coherence_state
         if polygon_output
-            return output_layer.polygons.merge(true, 0)
-        else
-            return output_layer
+            output_layer = output_layer.polygons.ext_merge(true, 0)
         end
+        return output_layer
     end
 
     def ext_extended(outside = 0, inside = 0)
@@ -689,13 +704,14 @@ class DRC::DRCLayer
         else
             edge_layer = self
         end
-        return edge_layer.extended(:out => outside, :in => inside).merge(true, 0)
+        output_layer = edge_layer.extended(:out => outside, :in => inside)
+        return output_layer.ext_merge(true, 0)
     end
 
     def ext_extents
         self_min_coherence_state = self.data.min_coherence?
         self.data.min_coherence = true
-        output_layer = self.extents.merge(true, 0)
+        output_layer = self.extents.ext_merge(true, 0)
         self.data.min_coherence = self_min_coherence_state
         return output_layer
     end
@@ -753,10 +769,9 @@ class DRC::DRCLayer
         self.data.min_coherence = self_min_coherence_state
         other.data.min_coherence = other_min_coherence_state
         if polygons
-            return separation_errors.polygons.merge(true, 0)
-        else
-            return separation_errors
+            separation_errors = separation_errors.polygons.ext_merge(true, 0)
         end
+        return separation_errors
     end
 
     def ext_separation(other,
@@ -814,10 +829,9 @@ class DRC::DRCLayer
         self.data.min_coherence = self_min_coherence_state
         other.data.min_coherence = other_min_coherence_state
         if polygon_output
-            return output_layer.polygons.merge(true, 0)
-        else
-            return output_layer
+            output_layer = output_layer.polygons.ext_merge(true, 0)
         end
+        return output_layer
     end
 
     def ext_inside_part(other, inverted: false)
@@ -829,10 +843,11 @@ class DRC::DRCLayer
         else
             edge_layer = self
         end
+        merged_other = other.ext_merged(true, 0)
         if inverted
-            return edge_layer.outside_part(other.merged(true, 0))
+            return edge_layer.outside_part(merged_other)
         else
-            return edge_layer.inside_part(other.merged(true, 0))
+            return edge_layer.inside_part(merged_other)
         end
     end
 
@@ -913,10 +928,9 @@ class DRC::DRCLayer
         self.data.min_coherence = self_min_coherence_state
         other.data.min_coherence = other_min_coherence_state
         if polygons
-            return overlap_errors.polygons.merge(true, 0)
-        else
-            return overlap_errors
+            overlap_errors = overlap_errors.polygons.ext_merge(true, 0)
         end
+        return overlap_errors
     end
 
     def ext_overlap(other,
@@ -983,10 +997,9 @@ class DRC::DRCLayer
             other.data.min_coherence = other_min_coherence_state
         end
         if polygon_output
-            return output_layer.polygons.merge(true, 0)
-        else
-            return output_layer
+            output_layer = output_layer.polygons.ext_merge(true, 0)
         end
+        return output_layer
     end
 
     def ext_with_coincident_edges(other)
@@ -1128,10 +1141,9 @@ class DRC::DRCLayer
         )
         self.data.min_coherence = self_min_coherence_state
         if polygons
-            return space_errors.polygons.merge(true, 0)
-        else
-            return space_errors
+            space_errors = space_errors.polygons.ext_merge(true, 0)
         end
+        return space_errors
     end
 
     def ext_space(value,
@@ -1169,10 +1181,9 @@ class DRC::DRCLayer
         end
         self.data.min_coherence = self_min_coherence_state
         if polygon_output
-            return output_layer.polygons.merge(true, 0)
-        else
-            return output_layer
+            output_layer = output_layer.polygons.ext_merge(true, 0)
         end
+        return output_layer
     end
 
     def ext_width_at_intersecting_edges(value,
@@ -1218,10 +1229,9 @@ class DRC::DRCLayer
         )
         self.data.min_coherence = self_min_coherence_state
         if polygons
-            return width_errors.polygons.merge(true, 0)
-        else
-            return width_errors
+            width_errors = width_errors.polygons.ext_merge(true, 0)
         end
+        return width_errors
     end
 
     def ext_width(value,
@@ -1258,7 +1268,7 @@ class DRC::DRCLayer
                 false)
         end
         if polygon_output
-            output_layer = output_layer.polygons.merge(true, 0)
+            output_layer = output_layer.polygons.ext_merge(true, 0)
         end
         self.data.min_coherence = self_min_coherence_state
         return output_layer
@@ -1319,7 +1329,7 @@ class DRC::DRCLayer
         if self.is_merged?
           merged_layer = self
         else
-          merged_layer = self.merged(true, 0)
+          merged_layer = self.ext_merged(true, 0)
         end
         origin = 'cc'
         tile_size = nil
@@ -2258,26 +2268,11 @@ end.().output("Sal.e", "Min. SalBlock space to Cont = 0.20")
     badViaLine.ext_rectangles(inverted: true)
 end.().output("Cnt.b1", "Min. Cont space in a contact array of more than 4 rows and more then 4 columns (Cnt.b1 is only required in one direction. The distance of the other direction must be at least Cnt.b.) = 0.20")
 -> do
-    temp_layer_4.ext_enclosed(Act_Nsram_or_Activ_mask.ext_not(DigiBnd), 0.07.um, consider_overlaps_as_errors: true)
-end.().output("Cnt.c", "Min. Activ enclosure of Cont = 0.07")
--> do
-    Cont_SQ.ext_enclosed(GP_Nsram, 0.07.um, consider_overlaps_as_errors: true)
-end.().output("Cnt.d", "Min. GatPoly enclosure of Cont = 0.07")
--> do
-    Cont_GP.ext_not(SVaricap).ext_separation(Activ, 0.14.um, consider_intersecting_edges: false, consider_touch_points: false)
-end.().output("Cnt.e", "Min. Cont on GatPoly space to Activ = 0.14")
--> do
     Cont_Act.ext_not(SVaricap).ext_separation(GP_Nsram, 0.11.um)
 end.().output("Cnt.f", "Min. Cont on Activ space to GatPoly = 0.11")
 -> do
     Cont_not_Act_GP.dup
 end.().output("Cnt.g", "Cont must be within Activ or GatPoly")
--> do
-    pSD.ext_separation(Cont_NAct.ext_not(SVaricap), 0.09.um, consider_intersecting_edges: false, consider_touch_points: false)
-end.().output("Cnt.g1", "Min. pSD space to Cont on nSD-Activ = 0.09")
--> do
-    Cont_PAct_not_SVaricap.ext_enclosed(pSD_Nsram, 0.09.um, consider_intersecting_edges: false, consider_touch_points: false)
-end.().output("Cnt.g2", "Min. pSD overlap of Cont on pSD-Activ = 0.09")
 -> do
     Cont_not_M1.dup
 end.().output("Cnt.h", "Cont must be covered with Metal1")
@@ -2719,9 +2714,6 @@ if $recommendedRules
 	end.().output("Pad.kR", "TopVia2 under Pad not allowed (TopVia2 may be damaged during packaging process, we recommend not to use them below Passiv.)")
 end
 
--> do
-    cupPad_candidat.ext_space(50.0.um, polygon_output: true)
-end.().output("Padc.b", "Min. CuPillarPad space = Table 6.1")
 -> do
     cupPad_candidat.ext_separation(Act_EdgeSeal_not_HRACT, 30.0.um, consider_touch_points: false, polygon_output: true)
 end.().output("Padc.d", "Min. CuPillarPad space to EdgeSeal = 30.00")

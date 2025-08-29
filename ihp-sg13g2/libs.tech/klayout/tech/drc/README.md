@@ -58,7 +58,7 @@ The `run_drc.py` script takes your gds to run DRC rule decks with switches to se
     run_drc.py --path=<file_path>
             [--table=<table_name>]... [--mp=<num_cores>] [--run_dir=<run_dir_path>]
             [--topcell=<topcell_name>] [--run_mode=<mode>] [--drc_json=<json_path>]
-            [--no_feol] [--no_beol] [--MaxRuleSet] [--no_connectivity] [--no_density]
+            [--disable_extra_rules] [--no_feol] [--no_beol] [--no_density]
             [--density_thr=<density_threads>] [--density_only] [--antenna]
             [--antenna_only] [--no_offgrid] [--macro_gen]
 ```
@@ -80,13 +80,12 @@ The `run_drc.py` script takes your gds to run DRC rule decks with switches to se
   --topcell TOPCELL     Top-level cell name to use from the input GDS.
   --density_thr DENSITY_THR
                         Number of threads to use during the density run (default: number of CPU cores).
-  --run_mode {flat,deep}
-                        KLayout execution mode: flat, deep, or tiling. [default: deep]
+  --run_mode {deep,flat}
+                        KLayout execution mode: deep, or flat. [default: deep]
   --drc_json DRC_JSON   Path to a JSON file that defines rule values to use.
   --no_feol             Disable all FEOL-related DRC checks.
   --no_beol             Disable all BEOL-related DRC checks.
-  --MaxRuleSet          Force execution of the full rule deck.
-  --no_connectivity     Skip connectivity-related rules.
+  --disable_extra_rules Disable the remaining DRC rules from the full rule set (may be slower).
   --no_density          Disable density rule checks.
   --density_only        Run only density rules.
   --antenna             Enable antenna rule checks.
@@ -96,16 +95,17 @@ The `run_drc.py` script takes your gds to run DRC rule decks with switches to se
 ```
 
 > **ℹ️ Note**  
-> By default, the **short rule set** will be executed, which includes **density rules**.  
-> To disable density checks, use the `--no_density` switch.
 >
-> If the `--drc_json=<json_path>` option is **not provided**, the script will follow this fallback order:
+> By default, the **main DRC rule set** is executed, which includes checks such as **density rules**.  
+> To skip density checks, use the `--no_density` option.
 >
-> 1. Try to load the **SG13G2 tech JSON**:  
->   [SG13G2 tech JSON](../../python/sg13g2_pycell_lib/sg13g2_tech_mod.json)
+> If the `--drc_json=<json_path>` option is **not specified**, the script will get rule values as following:
 >
-> 2. If not found, fall back to the **default DRC values**:  
->    [default tech DRC values](./rule_decks/default_drc_rules.json)
+> 1. Attempt to load the **SG13G2 technology JSON file**:  
+>    [SG13G2 tech JSON](../../python/sg13g2_pycell_lib/sg13g2_tech_mod.json)
+>
+> 2. If not found, fall back to the **default DRC rule set**:  
+>    [Default DRC values](./rule_decks/default_drc_rules.json)
 
 #### DRC Outputs
 
@@ -212,12 +212,12 @@ Upon executing the DRC, the result database will appear on your layout interface
 
 The current SG13G2 DRC rules are categorized as follows:
 
-- **Minimum Rule Set** – Refer to the [README](docs/MinList.md):  
-  This set contains the essential DRC rules that are required for baseline verification. All rules in this category have been thoroughly verified, tested, and optimized for performance.
+- **PreCheck Rule Set** – Refer to the [README](docs/precheck_rules.md):  
+  This set contains the essential DRC rules that are required for baseline verification. All rules in this category have been thoroughly verified, tested, and optimized for performance. This rule set is intended for foundry precheck purposes.
 
-- **Maximum Rule Set** – Refer to the [README](docs/MaxList.md):  
-  This set includes additional residual rules that are not part of the minimum set. These rules can be activated by using the `--MaxRuleSet` switch when executing the DRC. Please note that these rules have not been verified or tested.
+- **Main Rule Set** – Refer to the [README](docs/main_rules.md):  
+  This set includes rules that were not previously implemented. It also incorporates essential DRC rules already available in the [PreCheck Rule Set](docs/precheck_rules.md).
 
-- **Missing Rule Set** – Refer to the [README](docs/MissingList.md):  
-  This set lists the DRC rules that have not yet been implemented.
+- **Extra Rule Set** – Refer to the [README](docs/extra_rules.md):  
+  This set includes additional residual rules that are not part of the main set. These rules can be deactivated by using the `--disable_extra_rules` switch when executing the DRC. Please note that these rules have not been verified or tested and may be slower.
 ---

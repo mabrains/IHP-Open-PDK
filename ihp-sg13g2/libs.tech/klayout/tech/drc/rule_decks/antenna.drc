@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #====================================================================================================================
 #--------------------------------------------- IHP-SG13G2 DRC RULE DECK ---------------------------------------------
 #====================================================================================================================
@@ -12,22 +14,34 @@ formatter = proc do |_severity, datetime, _progname, msg|
   "#{datetime}: Memory Usage (#{memory_usage}) : #{msg}\n"
 end
 
-# Create file and stdout loggers
+# Create file logger
 file_logger = Logger.new($log)
 file_logger.formatter = formatter
+
+# Create stdout logger
 stdout_logger = Logger.new($stdout)
 stdout_logger.formatter = formatter
 
-# Multi-logger
+# MultiLogger class to broadcast to multiple loggers
 class MultiLogger
   def initialize(*targets)
     @targets = targets
   end
-  def info(msg) @targets.each { |t| t.info(msg) } end
-  def warn(msg) @targets.each { |t| t.warn(msg) } end
-  def error(msg) @targets.each { |t| t.error(msg) } end
+
+  def info(msg)
+    @targets.each { |t| t.info(msg) }
+  end
+
+  def warn(msg)
+    @targets.each { |t| t.warn(msg) }
+  end
+
+  def error(msg)
+    @targets.each { |t| t.error(msg) }
+  end
 end
 
+# Use the multi-logger for your application
 logger = MultiLogger.new(stdout_logger, file_logger)
 
 #================================================
@@ -67,22 +81,14 @@ def bool_check?(obj)
   obj.to_s.downcase == 'true'
 end
 
-# === TILING MODE ===
-case $run_mode
-## Tiling mode is for testing purpose only [Not used in run_drc.py]
-when 'tiling'
-  tiles(500.um)
-  tile_borders(10.um)
-  logger.info('Tiling  mode is enabled.')
-
-when 'deep'
-  #=== HIER MODE ===
-  deep
-  logger.info("deep  mode is enabled for antenna table")
-else
-  #=== FLAT MODE ===
-  flat
-  logger.info("flat  mode is enabled for antenna table")
+# Run mode setup
+def setup_run_mode(run_mode)
+  case run_mode
+  when 'flat'
+    flat
+  else
+    deep
+  end
 end
 
 #================================================

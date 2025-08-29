@@ -69,8 +69,7 @@ def set_default_options
     'density_thr' =&gt; 1,
     'no_feol' =&gt; false,
     'no_beol' =&gt; false,
-    'MaxRuleSet' =&gt; false,
-    'no_connectivity' =&gt; true,
+    'disable_extra_rules' =&gt; false,
     'no_density' =&gt; true,
     'density_only' =&gt; false,
     'antenna' =&gt; false,
@@ -138,19 +137,19 @@ end
 
 # Extract and format options
 cmd_opts = [
-  "--path=#{gds_path}",
+  "--path='#{gds_path}'",
   "--run_mode=#{options['run_mode']}",
-  "--topcell=#{top_cell}",
-  "--run_dir=#{run_dir}",
+  "--topcell='#{top_cell}'",
+  "--run_dir='#{run_dir}'",
   "--mp=#{options['parallel_runs']}",
   "--density_thr=#{options['density_thr']}"
 ]
 
-%w[no_feol no_beol MaxRuleSet no_connectivity no_density density_only antenna antenna_only no_offgrid].each do |flag|
+%w[no_feol no_beol disable_extra_rules no_density density_only antenna antenna_only no_offgrid].each do |flag|
   cmd_opts &lt;&lt; "--#{flag}" if options[flag]
 end
 
-cmd_opts &lt;&lt; "--table=#{options['table']}" if options['table'] &amp;&amp; !options['table'].empty? &amp;&amp; options['table'] != 'all'
+cmd_opts &lt;&lt; "--table='#{options['table']}'" if options['table'] &amp;&amp; !options['table'].empty? &amp;&amp; options['table'] != 'all'
 
 # Run DRC with options
 cmd = "nohup python3 #{File.join(project_root, 'drc', 'run_drc.py')} #{cmd_opts.join(' ')}"
