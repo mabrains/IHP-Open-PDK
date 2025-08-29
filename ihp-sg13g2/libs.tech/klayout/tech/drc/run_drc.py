@@ -542,8 +542,7 @@ def build_switches_string(sws: dict) -> str:
     str
         A space-separated string of -rd key=value pairs.
     """
-    return " ".join(f"-rd {k}={v}" for k, v in sws.items())
-
+    return " ".join(f"-rd {k}='{v}'" for k, v in sws.items())
 
 def run_check(
     drc_file: str,
@@ -590,7 +589,7 @@ def run_check(
     sws_str = build_switches_string(new_sws)
     sws_str += f" -rd table_name={drc_table}"
 
-    run_cmd = f"klayout -b -r {drc_file} {sws_str}"
+    run_cmd = f"klayout -b -r '{drc_file}' {sws_str}"
     check_call(run_cmd, shell=True)
 
     return str(report_path)

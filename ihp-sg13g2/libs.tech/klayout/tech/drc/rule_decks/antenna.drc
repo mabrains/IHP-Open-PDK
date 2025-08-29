@@ -102,9 +102,6 @@ end
 # Run mode setup
 def setup_run_mode(run_mode)
   case run_mode
-  when 'tiling'
-    tiles(500.um)
-    tile_borders(30.um)
   when 'flat'
     flat
   else
@@ -119,22 +116,6 @@ logger.info("Klayout will use #{$thr} thread(s)")
 # Run mode
 setup_run_mode($run_mode)
 logger.info("#{$run_mode} mode is enabled for antenna table.")
-
-# FEOL
-FEOL = !bool_check?($no_feol)
-logger.info("FEOL enabled: #{FEOL}")
-
-# BEOL
-BEOL = !bool_check?($no_beol)
-logger.info("BEOL enabled: #{BEOL}")
-
-# OFFGRID
-OFFGRID = !bool_check?($no_offgrid)
-logger.info("OffGrid enabled: #{OFFGRID}")
-
-# PreCheck DRC
-PRECHECK_DRC = bool_check?($precheck_drc)
-logger.info("PreCheck DRC enabled: #{PRECHECK_DRC}")
 
 #================================================
 #------------- LAYERS DEFINITIONS ---------------
