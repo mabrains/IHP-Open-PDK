@@ -405,8 +405,6 @@ logger.info('Evaluating diode presence')
 diode_presence = evaluate_nets(gate, { 'd' => diode }, "put('has_diode', area(d) > 0.16 ? 1 : 0)")
 diode_presence1 = evaluate_nets(gate, { 'd' => diode }, "put('has_diode', area(d) > 0.16 ? 1 : 0)")
 
-diode_presence1.output('diode_flag', 'Diode presence flag for antenna rules (1 if diode connected, 0 if not).')
-
 # Create a base layer with all individual ratios and the diode flag
 logger.info('Creating base layer with all individual ratios and diode flag')
 ar_all_layers = (antenna_ratios.values.reduce(:+) + diode_presence).merged_props
