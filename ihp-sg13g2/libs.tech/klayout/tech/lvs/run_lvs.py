@@ -23,7 +23,7 @@ Usage:
     [--run_dir=<run_dir_path>] [--topcell=<topcell_name>] [--run_mode=<run_mode>]
     [--no_net_names] [--spice_comments] [--net_only] [--no_simplify]
     [--no_series_res] [--no_parallel_res] [--combine_devices] [--top_lvl_pins]
-    [--purge] [--purge_nets] [--verbose]
+    [--purge] [--purge_nets] [--verbose] [--implicit_nets=<nets>]
 
 Options:
     --help -h                           Displays this help message.
@@ -43,6 +43,7 @@ Options:
     --purge                             Removes unused nets from both layout and schematic netlists.
     --purge_nets                        Purges floating nets from both layout and schematic netlists.
     --verbose                           Enables detailed rule execution logs for debugging purposes.
+    --implicit_nets=<nets>              Specifies a comma-separated list of net names for implicit connections (e.g., "VDD,VSS"). Use "*" for all labeled nets.
 """
 
 from docopt import docopt
@@ -208,6 +209,7 @@ def generate_klayout_switches(arguments, layout_path, netlist_path):
         "purge": "true" if arguments.get("--purge") else "false",
         "purge_nets": "true" if arguments.get("--purge_nets") else "false",
         "verbose": "true" if arguments.get("--verbose") else "false",
+        "implicit_nets": f'"{arguments["--implicit_nets"]}"' if arguments.get("--implicit_nets") else '""',
         "topcell": get_run_top_cell_name(arguments, layout_path),
         "input": os.path.abspath(layout_path),
         "schematic": os.path.abspath(netlist_path)
