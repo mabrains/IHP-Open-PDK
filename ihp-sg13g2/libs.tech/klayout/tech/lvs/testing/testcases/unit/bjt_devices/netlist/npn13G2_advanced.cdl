@@ -1,0 +1,3 @@
+.SUBCKT TOP
+Q1 C1 B1 E1 sub! npn13G2 le=900.0n we=70.00n m=2
+.ENDS
