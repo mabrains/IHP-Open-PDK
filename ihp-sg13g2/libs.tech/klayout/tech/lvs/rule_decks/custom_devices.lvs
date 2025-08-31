@@ -133,6 +133,9 @@ class DeviceCustomVaractor < RBA::DeviceClassCapacitorWithBulk
     clear_terminals
 
     add_parameters('w', 'l')
+    add_parameter(RBA::DeviceParameterDefinition.new('m', 'multiplier', 1, true))
+
+    self.combiner = VaractorDeviceCombiner.new
     add_terminals(name, num, 1)
   end
 end

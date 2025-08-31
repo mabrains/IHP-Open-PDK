@@ -1,0 +1,5 @@
+.subckt TOP
+C1 net2 GND net1 sub sg13_hv_svaricap W=3.74e-6 L=0.3e-6 Nx=1
+C2 net2 GND net1 sub sg13_hv_svaricap W=3.74e-6 L=0.3e-6 Nx=1
+.ends
+.end

@@ -119,6 +119,35 @@ class MIMCAPNDeviceCombiner < RBA::GenericDeviceCombiner
   end
 end
 
+class VaractorDeviceCombiner < RBA::GenericDeviceCombiner
+  include DeviceCombinerMethods
+
+  # Method to check and perform device combination for varactors
+  def combine_devices(a, b)
+    device_name = a.device_class.name
+
+    # Check if both devices are connected in parallel across all three terminals
+    return false unless same_net(a, b, "#{device_name}_1")
+    return false unless same_net(a, b, "#{device_name}_2")
+    return false unless same_net(a, b, "#{device_name}_3")
+    return false unless same_net(a, b, "#{device_name}_sub")
+
+    # Check if essential parameters are the same (W and L)
+    return false unless same_parameter(a, b, 'w') && same_parameter(a, b, 'l')
+
+    # Combine by summing up the 'm' (multiplier) parameter
+    a.set_parameter('m', a.parameter('m') + b.parameter('m'))
+
+    # Disconnect the second device ('b') completely and let the system clean it up
+    b.disconnect_terminal("#{device_name}_1")
+    b.disconnect_terminal("#{device_name}_2")
+    b.disconnect_terminal("#{device_name}_3")
+    b.disconnect_terminal("#{device_name}_sub")
+
+    true
+  end
+end
+
 class DiodeDeviceCombiner < RBA::GenericDeviceCombiner
   include DeviceCombinerMethods
 
