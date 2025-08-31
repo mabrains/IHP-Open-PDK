@@ -1,0 +1,4 @@
+.SUBCKT TOP A B C D
+R1 A B rppd L=7u W=2.5u
+R2 C D rppd L=3.5u W=2.5u m=2
+.ENDS
