@@ -10,8 +10,9 @@ from liberty_parser.helpers import (
     getstr,
     gname,
     norm,
-    parse_values_matrix,
+    parse_values_paired_samples,
     preprocess_liberty_text,
+    CELLS_MAP,
 )
 from liberty_parser.types import (
     CellSummary,
@@ -79,24 +80,23 @@ class LibertyDataExtractor:
                     for table in timing.get_groups(table_type):
                         idx1 = getlistf(table, "index_1")
                         idx2 = getlistf(table, "index_2")
-                        matrix = parse_values_matrix(table.get("values"), len(idx2))
-
-                        for i, row in enumerate(matrix):
-                            for j, val in enumerate(row):
-                                timing_arcs.append(
-                                    TimingArc(
-                                        out_pin=out_pin,
-                                        related_pin=related_pin,
-                                        timing_sense=timing_sense,
-                                        timing_type=timing_type,
-                                        kind=table_type,
-                                        i=i,
-                                        j=j,
-                                        slew_ns=idx1[i] if i < len(idx1) else None,
-                                        load_pf=idx2[j] if j < len(idx2) else None,
-                                        value_ns=float(val),
-                                    )
+                        samples = parse_values_paired_samples(
+                            table.get("values"), idx1, idx2
+                        )
+                        for s in samples:
+                            timing_arcs.append(
+                                TimingArc(
+                                    out_pin=out_pin,
+                                    related_pin=related_pin,
+                                    timing_sense=timing_sense,
+                                    timing_type=timing_type,
+                                    kind=table_type,
+                                    sample_type=s["sample_type"],
+                                    slew_ns=s["slew_ns"],
+                                    load_pf=s["load_pf"],
+                                    value_ns=s["value"],
                                 )
+                            )
         return timing_arcs
 
     def extract_power_arcs(self, cell) -> List[PowerArc]:
@@ -113,22 +113,23 @@ class LibertyDataExtractor:
                     for table in power.get_groups(table_type):
                         idx1 = getlistf(table, "index_1")
                         idx2 = getlistf(table, "index_2")
-                        matrix = parse_values_matrix(table.get("values"), len(idx2))
+                        samples = parse_values_paired_samples(
+                            table.get("values"), idx1, idx2
+                        )
 
-                        for i, row in enumerate(matrix):
-                            for j, val in enumerate(row):
-                                power_arcs.append(
-                                    PowerArc(
-                                        pin=p_name,
-                                        related_pin=related_pin,
-                                        kind=table_type,
-                                        i=i,
-                                        j=j,
-                                        slew_ns=idx1[i] if i < len(idx1) else None,
-                                        load_pf=idx2[j] if j < len(idx2) else None,
-                                        value_mw=float(val),
-                                    )
+                        for s in samples:
+                            power_arcs.append(
+                                PowerArc(
+                                    pin=p_name,
+                                    related_pin=related_pin,
+                                    kind=table_type,
+                                    sample_type=s["sample_type"],
+                                    slew_ns=s["slew_ns"],
+                                    load_pf=s["load_pf"],
+                                    value_mw=s["value"],
                                 )
+                            )
+
         return power_arcs
 
     def convert(self, lib_path: Path, out_dir: Path) -> Path:
@@ -154,18 +155,22 @@ class LibertyDataExtractor:
 
         for cell in cells:
             cname = gname(cell)
-            print(f"Processing cell: {cname}")
-
+            group = CELLS_MAP.get(cname)
+            print(f"Processing cell: {cname}  → group: {group}")
             summary = self.extract_cell_summary(cell)
             pin_caps = self.extract_pin_capacitances(cell)
             timing_arcs = self.extract_timing_arcs(cell)
             power_arcs = self.extract_power_arcs(cell)
 
             file_paths = exporter.export_cell_data(
-                cname, summary, pin_caps, timing_arcs, power_arcs
+                group=group,
+                cell_name=cname,
+                summary=summary,
+                pin_caps=pin_caps,
+                timing_arcs=timing_arcs,
+                power_arcs=power_arcs,
             )
-
-            index_rows.append({"cell": cname, **file_paths})
+            index_rows.append({"cell": cname, "group": group, **file_paths})
 
             print(
                 f"  - {len(timing_arcs)} timing arcs, {len(power_arcs)} power arcs, {len(pin_caps)} pins"
@@ -184,17 +189,22 @@ class CSVExporter:
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
+    def _cell_dir(self, group: str, cell_name: str) -> Path:
+        d = self.output_dir / group / cell_name
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
     def export_cell_data(
         self,
+        group: str,
         cell_name: str,
         summary: CellSummary,
         pin_caps: List[PinCapacitance],
         timing_arcs: List[TimingArc],
         power_arcs: List[PowerArc],
     ) -> Dict[str, str]:
-        """Export all cell data to CSV files and return file paths"""
-        cell_dir = self.output_dir / cell_name
-        cell_dir.mkdir(parents=True, exist_ok=True)
+        """Export all cell data to CSV files and return file paths relative to group root."""
+        cell_dir = self._cell_dir(group, cell_name)
 
         summary_data = {
             "cell": summary.cell,
@@ -244,8 +254,7 @@ class CSVExporter:
                     "timing_sense": ta.timing_sense,
                     "timing_type": ta.timing_type,
                     "kind": ta.kind,
-                    "i": ta.i,
-                    "j": ta.j,
+                    "sample_type": ta.sample_type,
                     "slew_ns": ta.slew_ns,
                     "load_pf": ta.load_pf,
                     "value_ns": ta.value_ns,
@@ -253,7 +262,7 @@ class CSVExporter:
                 for ta in timing_arcs
             ]
             df_timing = pd.DataFrame(timing_data).sort_values(
-                ["out_pin", "related_pin", "kind", "i", "j"], na_position="last"
+                ["out_pin", "related_pin", "kind", "sample_type"], na_position="last"
             )
         else:
             df_timing = pd.DataFrame(
@@ -263,8 +272,7 @@ class CSVExporter:
                     "timing_sense",
                     "timing_type",
                     "kind",
-                    "i",
-                    "j",
+                    "sample_type",
                     "slew_ns",
                     "load_pf",
                     "value_ns",
@@ -278,8 +286,7 @@ class CSVExporter:
                     "pin": pa.pin,
                     "related_pin": pa.related_pin,
                     "kind": pa.kind,
-                    "i": pa.i,
-                    "j": pa.j,
+                    "sample_type": pa.sample_type,
                     "slew_ns": pa.slew_ns,
                     "load_pf": pa.load_pf,
                     "value_mw": pa.value_mw,
@@ -287,7 +294,7 @@ class CSVExporter:
                 for pa in power_arcs
             ]
             df_power = pd.DataFrame(power_data).sort_values(
-                ["pin", "related_pin", "kind", "i", "j"], na_position="last"
+                ["pin", "related_pin", "kind", "sample_type"], na_position="last"
             )
         else:
             df_power = pd.DataFrame(
@@ -295,8 +302,7 @@ class CSVExporter:
                     "pin",
                     "related_pin",
                     "kind",
-                    "i",
-                    "j",
+                    "sample_type",
                     "slew_ns",
                     "load_pf",
                     "value_mw",
@@ -304,13 +310,12 @@ class CSVExporter:
             )
         df_power.to_csv(cell_dir / "power.csv", index=False)
 
+        rel_base = self.output_dir / group
         return {
-            "cell_summary": str(
-                (cell_dir / "cell_summary.csv").relative_to(self.output_dir)
-            ),
-            "pin_caps": str((cell_dir / "pin_caps.csv").relative_to(self.output_dir)),
-            "timing": str((cell_dir / "timing.csv").relative_to(self.output_dir)),
-            "power": str((cell_dir / "power.csv").relative_to(self.output_dir)),
+            "cell_summary": str((cell_dir / "cell_summary.csv").relative_to(rel_base)),
+            "pin_caps": str((cell_dir / "pin_caps.csv").relative_to(rel_base)),
+            "timing": str((cell_dir / "timing.csv").relative_to(rel_base)),
+            "power": str((cell_dir / "power.csv").relative_to(rel_base)),
         }
 
     def export_library_meta(self, library_group) -> None:
@@ -333,7 +338,6 @@ class CSVExporter:
             "nom_temperature",
             "nom_process",
         ]
-
         lib_meta: Dict[str, Any] = {}
         for attr in meta_attrs:
             v = library_group.get(attr)
@@ -346,10 +350,11 @@ class CSVExporter:
         )
 
     def export_cells_index(self, index_data: List[Dict[str, str]]) -> None:
-        """Export the main cells index CSV"""
-        pd.DataFrame(index_data).sort_values("cell").to_csv(
-            self.output_dir / "cells_index.csv", index=False
-        )
+        """Export the main cells index CSV (sorted by group, cell)."""
+        df = pd.DataFrame(index_data)
+        if not df.empty:
+            df = df.sort_values(["group", "cell"])
+        df.to_csv(self.output_dir / "cells_index.csv", index=False)
 
 
 def main():
@@ -368,13 +373,13 @@ def main():
         converter = LibertyDataExtractor()
         output_path = converter.convert(Path(args.lib), Path(args.out))
 
-        print(f"\n✅ Success!")
+        print(f"\n Success!")
         print(f"Output directory: {output_path}")
         print(f"Main index: {output_path / 'cells_index.csv'}")
         print(f"Library metadata: {output_path / 'library_meta.json'}")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         raise
 
 

@@ -9,8 +9,7 @@ class TimingArc:
     timing_sense: Optional[str]
     timing_type: Optional[str]
     kind: str  # cell_rise, cell_fall, rise_transition, fall_transition
-    i: int
-    j: int
+    sample_type:str
     slew_ns: Optional[float]
     load_pf: Optional[float]
     value_ns: float
@@ -21,8 +20,7 @@ class PowerArc:
     pin: str
     related_pin: str
     kind: str  # rise_power, fall_power
-    i: int
-    j: int
+    sample_type:str
     slew_ns: Optional[float]
     load_pf: Optional[float]
     value_mw: float

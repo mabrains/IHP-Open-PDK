@@ -135,3 +135,133 @@ def cell_has_output_timing(cell) -> bool:
         if pin.get_groups("timing"):
             return True
     return False
+
+
+def parse_values_paired_samples(values, idx1, idx2):
+    """
+    Return up to three dicts: first/mid/last paired samples:
+      {"sample_type": "first|mid|last", "slew_ns": ..., "load_pf": ..., "value": ...}
+    """
+    mtx = parse_values_matrix(values, idx2_len=len(idx2))
+    n_i = len(mtx)
+    n_j = len(mtx[0]) if n_i else 0
+
+    def picks(n):
+        if n <= 0:
+            return []
+        if n == 1:
+            return [0]
+        mid = n // 2
+        out = []
+        for i in (0, mid, n - 1):
+            if 0 <= i < n and i not in out:
+                out.append(i)
+        return out
+
+    i_pos, j_pos = picks(n_i), picks(n_j)
+    labels = ["first", "mid", "last"]
+    m = min(len(i_pos), len(j_pos), 3)
+
+    out = []
+    for k in range(m):
+        i, j = i_pos[k], j_pos[k]
+        out.append(
+            {
+                "sample_type": labels[k],
+                "slew_ns": (idx1[i] if i < len(idx1) else None),
+                "load_pf": (idx2[j] if j < len(idx2) else None),
+                "value": float(mtx[i][j]),
+            }
+        )
+    return out
+
+
+CELLS_MAP = {
+    # Combinational
+    "sg13g2_a21o_1": "combinational",
+    "sg13g2_a21o_2": "combinational",
+    "sg13g2_a21oi_1": "combinational",
+    "sg13g2_a21oi_2": "combinational",
+    "sg13g2_a221oi_1": "combinational",
+    "sg13g2_a22oi_1": "combinational",
+    "sg13g2_and2_1": "combinational",
+    "sg13g2_and2_2": "combinational",
+    "sg13g2_and3_1": "combinational",
+    "sg13g2_and3_2": "combinational",
+    "sg13g2_and4_1": "combinational",
+    "sg13g2_and4_2": "combinational",
+    "sg13g2_buf_1": "combinational",
+    "sg13g2_buf_2": "combinational",
+    "sg13g2_buf_4": "combinational",
+    "sg13g2_buf_8": "combinational",
+    "sg13g2_buf_16": "combinational",
+    "sg13g2_ebufn_2": "combinational",
+    "sg13g2_ebufn_4": "combinational",
+    "sg13g2_ebufn_8": "combinational",
+    "sg13g2_einvn_2": "combinational",
+    "sg13g2_einvn_4": "combinational",
+    "sg13g2_einvn_8": "combinational",
+    "sg13g2_inv_1": "combinational",
+    "sg13g2_inv_2": "combinational",
+    "sg13g2_inv_4": "combinational",
+    "sg13g2_inv_8": "combinational",
+    "sg13g2_inv_16": "combinational",
+    "sg13g2_mux2_1": "combinational",
+    "sg13g2_mux2_2": "combinational",
+    "sg13g2_mux4_1": "combinational",
+    "sg13g2_nand2_1": "combinational",
+    "sg13g2_nand2_2": "combinational",
+    "sg13g2_nand2b_1": "combinational",
+    "sg13g2_nand2b_2": "combinational",
+    "sg13g2_nand3_1": "combinational",
+    "sg13g2_nand3b_1": "combinational",
+    "sg13g2_nand4_1": "combinational",
+    "sg13g2_nor2_1": "combinational",
+    "sg13g2_nor2_2": "combinational",
+    "sg13g2_nor2b_1": "combinational",
+    "sg13g2_nor2b_2": "combinational",
+    "sg13g2_nor3_1": "combinational",
+    "sg13g2_nor3_2": "combinational",
+    "sg13g2_nor4_1": "combinational",
+    "sg13g2_nor4_2": "combinational",
+    "sg13g2_o21ai_1": "combinational",
+    "sg13g2_or2_1": "combinational",
+    "sg13g2_or2_2": "combinational",
+    "sg13g2_or3_1": "combinational",
+    "sg13g2_or3_2": "combinational",
+    "sg13g2_or4_1": "combinational",
+    "sg13g2_or4_2": "combinational",
+    "sg13g2_xor2_1": "combinational",
+    "sg13g2_xnor2_1": "combinational",
+    "sg13g2_lgcp_1": "combinational",
+    # Sequential
+    "sg13g2_dfrbp_1": "sequential",
+    "sg13g2_dfrbp_2": "sequential",
+    "sg13g2_dfrbpq_1": "sequential",
+    "sg13g2_dfrbpq_2": "sequential",
+    "sg13g2_dlhq_1": "sequential",
+    "sg13g2_dlhr_1": "sequential",
+    "sg13g2_dlhrq_1": "sequential",
+    "sg13g2_dllr_1": "sequential",
+    "sg13g2_dllrq_1": "sequential",
+    "sg13g2_sdfbbp_1": "sequential",
+    "sg13g2_sdfrbp_1": "sequential",
+    "sg13g2_sdfrbp_2": "sequential",
+    "sg13g2_sdfrbpq_1": "sequential",
+    "sg13g2_sdfrbpq_2": "sequential",
+    # Physical
+    "sg13g2_antennanp": "physical",
+    "sg13g2_decap_4": "physical",
+    "sg13g2_decap_8": "physical",
+    "sg13g2_fill_1": "physical",
+    "sg13g2_fill_2": "physical",
+    "sg13g2_fill_4": "physical",
+    "sg13g2_fill_8": "physical",
+    "sg13g2_tiehi": "physical",
+    "sg13g2_tielo": "physical",
+    "sg13g2_sighold": "physical",
+    "sg13g2_slgcp_1": "physical",
+    "sg13g2_dlygate4sd1_1": "physical",
+    "sg13g2_dlygate4sd2_1": "physical",
+    "sg13g2_dlygate4sd3_1": "physical",
+}
