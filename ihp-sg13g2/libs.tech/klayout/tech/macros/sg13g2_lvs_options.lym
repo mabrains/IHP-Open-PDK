@@ -120,7 +120,7 @@
       'top_cell' => '',
       'run_mode' => 'flat',
       'no_net_names' => false,
-      'spice_comments' => false,
+       'spice_comments' => false,
       'net_only' => false,
       'no_simplify' => false,
       'no_series_res' => false,
@@ -129,8 +129,8 @@
       'top_lvl_pins' => false,
       'purge' => false,
       'purge_nets' => false,
-      'verbose' => false,
       'implicit_nets' => '',
+      'verbose' => false,
     }
     save_options(yaml_file_path, default_options)
     default_options
@@ -304,7 +304,7 @@
     options['purge'] = dialog.layout.itemAt(14).widget.checked
     options['purge_nets'] = dialog.layout.itemAt(15).widget.checked
     options['verbose'] = dialog.layout.itemAt(16).widget.checked
-    options['implicit_nets'] = dialog.layout.itemAt(17).widget.text 
+    options['implicit_nets'] = dialog.layout.itemAt(18).widget.text 
   end
 
   # Save options to a YAML file
