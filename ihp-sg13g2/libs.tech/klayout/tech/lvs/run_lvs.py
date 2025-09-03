@@ -212,7 +212,7 @@ def generate_klayout_switches(arguments, layout_path, netlist_path):
         "verbose": "true" if arguments.get("--verbose") else "false",
         "topcell": get_run_top_cell_name(arguments, layout_path),
         "input": os.path.abspath(layout_path),
-        "schematic": os.path.abspath(netlist_path)
+        "schematic": os.path.abspath(netlist_path),
         "allow_missing_ports": "true" if arguments.get("--allow_missing_ports") else "false",
     }
 
