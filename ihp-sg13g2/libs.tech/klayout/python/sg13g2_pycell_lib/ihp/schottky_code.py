@@ -99,13 +99,12 @@ class schottky(DloGen):
                 dbCreateRect(self, nsdblock, Box(0.05+pcIndexX*pcStepX, 0.05+pcIndexY*pcStepY, 2*nsdbOcont-0.05+l+pcIndexX*pcStepX, 2*nsdbOcont-0.05+w+pcIndexY*pcStepY))
                 dbCreateRect(self, salblock, Box(pcIndexX*pcStepX, pcIndexY*pcStepY, 2*nsdbOcont+l+pcIndexX*pcStepX, 2*nsdbOcont+w+pcIndexY*pcStepY))
                 dbCreateRect(self, activ, Box(nsdbOcont-1+pcIndexX*pcStepX, nsdbOcont-0.85+pcIndexY*pcStepY, nsdbOcont+l+1+pcIndexX*pcStepX, nsdbOcont+w+0.85+pcIndexY*pcStepY))
-                if Cell == 'schottky_nbl1' :
-                    dbCreateRect(self, nwell, Box(-1+nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont-nwellScont+pcIndexY*pcStepY, nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+pcIndexY*pcStepY))
-                    dbCreateRect(self, nwell, Box(nsdbOcont+l+nwellScont+pcIndexX*pcStepX, nsdbOcont-nwellScont+pcIndexY*pcStepY, nsdbOcont+l+nwellScont+1+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+pcIndexY*pcStepY))
-                    dbCreateRect(self, nwell, Box(-1+nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+pcIndexY*pcStepY, nsdbOcont+l+nwellScont+1+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+0.85+pcIndexY*pcStepY))
-                    dbCreateRect(self, nwell, Box(-1+nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont-nwellScont+pcIndexY*pcStepY, nsdbOcont+l+nwellScont+1+pcIndexX*pcStepX, nsdbOcont-nwellScont-0.85+pcIndexY*pcStepY))
-                    dbCreateRect(self, pwellblock, Box(nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont-nwellScont+pcIndexY*pcStepY, nsdbOcont+l+nwellScont+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+pcIndexY*pcStepY))
-                    
+                dbCreateRect(self, nwell, Box(-1+nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont-nwellScont+pcIndexY*pcStepY, nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+pcIndexY*pcStepY))
+                dbCreateRect(self, nwell, Box(nsdbOcont+l+nwellScont+pcIndexX*pcStepX, nsdbOcont-nwellScont+pcIndexY*pcStepY, nsdbOcont+l+nwellScont+1+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+pcIndexY*pcStepY))
+                dbCreateRect(self, nwell, Box(-1+nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+pcIndexY*pcStepY, nsdbOcont+l+nwellScont+1+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+0.85+pcIndexY*pcStepY))
+                dbCreateRect(self, nwell, Box(-1+nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont-nwellScont+pcIndexY*pcStepY, nsdbOcont+l+nwellScont+1+pcIndexX*pcStepX, nsdbOcont-nwellScont-0.85+pcIndexY*pcStepY))
+                dbCreateRect(self, pwellblock, Box(nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont-nwellScont+pcIndexY*pcStepY, nsdbOcont+l+nwellScont+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+pcIndexY*pcStepY))
+                
             MetalCont(self, -0.37+pcIndexX*pcStepX, nsdbOcont-0.07-0.78, -0.37+pcIndexX*pcStepX, nsdbOcont+0.07+w+0.78+(Ny-1)*pcStepY, met1, cont, metWidth-0.02, contW, contW, 0.09, contS)
         
             MetalCont(self, 2*nsdbOcont+l+0.37+pcIndexX*pcStepX, nsdbOcont-0.07-0.78, 2*nsdbOcont+l+0.37+pcIndexX*pcStepX, nsdbOcont+0.07+w+0.78+(Ny-1)*pcStepY, met1, cont, metWidth-0.02, contW, contW, 0.09, contS)
