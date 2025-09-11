@@ -181,10 +181,10 @@ def check_drc_results(
         merged_report = run_dir / f"{layout_name}_{topcell}_full.lyrdb"
         merge_klayout_drc_reports(results_db_files, merged_report)
 
-        # # Delete partial reports after merging
-        # for f in results_db_files:
-        #     if f != merged_report and f.exists():
-        #         os.remove(f)
+        # Delete partial reports after merging
+        for f in results_db_files:
+            if f != merged_report and f.exists():
+                os.remove(f)
 
         report_path = merged_report
     else:
