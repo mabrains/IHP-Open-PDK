@@ -107,21 +107,33 @@ def merge_klayout_drc_reports(input_files: List[str], output_file: str):
             existing_names = set()
             for cell in base_cells.findall("cell"):
                 name_elem = cell.find("name")
+                cell_variant = cell.find("variant")
                 if name_elem is not None and name_elem.text:
-                    existing_names.add(name_elem.text.strip())
+                    if cell_variant is not None and cell_variant.text:
+                        cell_var_str = f"{name_elem.text.strip()}|{cell_variant.text.strip()}"
+                    else:
+                        cell_var_str = f"{name_elem.text.strip()}|"
+                    
+                    existing_names.add(cell_var_str)
+
 
             # Append new <cell> only if not already present
             cells = root.find("cells")
             if cells is not None:
                 for cell in cells.findall("cell"):
                     name_elem = cell.find("name")
+                    cell_variant = cell.find("variant")
                     if name_elem is not None and name_elem.text:
-                        name = name_elem.text.strip()
-                        if name not in existing_names:
-                            base_cells.append(cell)
-                            existing_names.add(name)
+                        if cell_variant is not None and cell_variant.text:
+                            cell_var_str = f"{name_elem.text.strip()}|{cell_variant.text.strip()}"
+                        else:
+                            cell_var_str = f"{name_elem.text.strip()}|"
 
-            # # Append each <items> from this file
+                        if cell_var_str not in existing_names:
+                            base_cells.append(cell)
+                            existing_names.add(cell_var_str)
+
+            # Append each <items> from this file
             items = root.find("items")
             if items is not None:
                 for item in items.findall("item"):
@@ -169,10 +181,10 @@ def check_drc_results(
         merged_report = run_dir / f"{layout_name}_{topcell}_full.lyrdb"
         merge_klayout_drc_reports(results_db_files, merged_report)
 
-        # Delete partial reports after merging
-        for f in results_db_files:
-            if f != merged_report and f.exists():
-                os.remove(f)
+        # # Delete partial reports after merging
+        # for f in results_db_files:
+        #     if f != merged_report and f.exists():
+        #         os.remove(f)
 
         report_path = merged_report
     else:
