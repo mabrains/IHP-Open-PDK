@@ -48,6 +48,7 @@ test-LVS-%:
 .ONESHELL:
 test-LVS-cells:
 	@echo "========== SG13G2-Cells Testing =========="
+	@ python3 replace_testcases_cells.py
 	@ python3 run_regression_cells.py
 
 #=================================
