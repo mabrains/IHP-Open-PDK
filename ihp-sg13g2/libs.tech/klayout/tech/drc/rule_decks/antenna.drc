@@ -316,7 +316,7 @@ pactiv_con = activ_drw.not(gatpoly_drw).and(psd_drw)
 # Diode
 dantenna = nactiv_con.and(recog_diode).not(nwell_drw)
 dpantenna = pactiv_con.and(recog_diode).and(nwell_drw)
-diode = dantenna.or(dpantenna)
+diode = nactiv_con.join(pactiv_con)
 
 #================================================
 #----------------- MAIN RUNSET ------------------
@@ -403,7 +403,6 @@ end
 # diode existence flag
 logger.info('Evaluating diode presence')
 diode_presence = evaluate_nets(gate, { 'd' => diode }, "put('has_diode', area(d) > 0.16 ? 1 : 0)")
-diode_presence1 = evaluate_nets(gate, { 'd' => diode }, "put('has_diode', area(d) > 0.16 ? 1 : 0)")
 
 # Create a base layer with all individual ratios and the diode flag
 logger.info('Creating base layer with all individual ratios and diode flag')
