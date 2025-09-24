@@ -51,7 +51,9 @@ class schottky(DloGen):
         nsdblock = Layer('nSD', 'block')         # 4
         cont  = Layer('Cont', 'drawing')         # 6
         met1 = Layer('Metal1', 'drawing')        # 8
+        met1_pin = Layer('Metal1', 'pin')        # 8
         met2 = Layer('Metal2', 'drawing')        # 10
+        met2_pin = Layer('Metal2', 'pin')        # 10
         psd = Layer('pSD', 'drawing')            # 14 
         via1 = Layer('Via1', 'drawing')          # 19
         salblock = Layer('SalBlock', 'drawing')  # 28
@@ -106,7 +108,6 @@ class schottky(DloGen):
                 dbCreateRect(self, pwellblock, Box(nsdbOcont-nwellScont+pcIndexX*pcStepX, nsdbOcont-nwellScont+pcIndexY*pcStepY, nsdbOcont+l+nwellScont+pcIndexX*pcStepX, nsdbOcont+nwellScont+w+pcIndexY*pcStepY))
                 
             MetalCont(self, -0.37+pcIndexX*pcStepX, nsdbOcont-0.07-0.78, -0.37+pcIndexX*pcStepX, nsdbOcont+0.07+w+0.78+(Ny-1)*pcStepY, met1, cont, metWidth-0.02, contW, contW, 0.09, contS)
-        
             MetalCont(self, 2*nsdbOcont+l+0.37+pcIndexX*pcStepX, nsdbOcont-0.07-0.78, 2*nsdbOcont+l+0.37+pcIndexX*pcStepX, nsdbOcont+0.07+w+0.78+(Ny-1)*pcStepY, met1, cont, metWidth-0.02, contW, contW, 0.09, contS)
             
             dbCreateRect(self, met2, Box(nsdbOcont+GridFix(l/2-0.305)+pcIndexX*pcStepX, nsdbOcont-1.145, nsdbOcont+GridFix(l/2+0.305)+pcIndexX*pcStepX, nsdbOcont + w + 0.555 + (Ny-1)*pcStepY))
@@ -116,17 +117,15 @@ class schottky(DloGen):
         dbCreateRect(self, diode, Box(-1+nsdbOcont-nwellScont, nsdbOcont-nwellScont-0.85, nsdbOcont+l+nwellScont+1+(Nx-1)*pcStepX, nsdbOcont+nwellScont+w+0.85+(Ny-1)*pcStepY))
             
         dbCreateRect(self, met1, Box(-0.55, nsdbOcont+0.07+w+0.78+(Ny-1)*pcStepY, 2*nsdbOcont+l+0.55+(Nx-1)*pcStepX, nsdbOcont+0.07+w+0.78+1.055+(Ny-1)*pcStepY))
-        MkPin(self, 'MINUS', 0, Box(-0.55, nsdbOcont+0.07+w+0.78+(Ny-1)*pcStepY, 2*nsdbOcont+l+0.55+(Nx-1)*pcStepX, nsdbOcont+0.07+w+0.78+1.055+(Ny-1)*pcStepY), met1)
+        MkPin(self, 'MINUS', 0, Box(-0.55, nsdbOcont+0.07+w+0.78+(Ny-1)*pcStepY, 2*nsdbOcont+l+0.55+(Nx-1)*pcStepX, nsdbOcont+0.07+w+0.78+1.055+(Ny-1)*pcStepY), met1_pin)
         
         MetalCont(self, -1.9-GridFix(psdWidth/2), -1.98-psdOactiv, -1.9-GridFix(psdWidth/2), 1.62+psdOactiv+2*nsdbOcont+w+(Ny-1)*pcStepY, met1, cont, metWidth, contW, contW, 0.09, contS)
-        
-        MkPin(self, 'TIE1', 0, Box(-1.9-GridFix((psdWidth+metWidth)/2), -1.98-psdOactiv, -1.9-GridFix((psdWidth-metWidth)/2), 1.62+psdOactiv+2*nsdbOcont+w+(Ny-1)*pcStepY), met1)
-        
+        MkPin(self, 'TIE1', 0, Box(-1.9-GridFix((psdWidth+metWidth)/2), -1.98-psdOactiv, -1.9-GridFix((psdWidth-metWidth)/2), 1.62+psdOactiv+2*nsdbOcont+w+(Ny-1)*pcStepY), met1_pin)
         MetalCont(self, l+2*nsdbOcont+1.9+GridFix(psdWidth/2)+(Nx-1)*pcStepX, -1.98-psdOactiv, l+2*nsdbOcont+1.9+GridFix(psdWidth/2)+(Nx-1)*pcStepX, 1.62+psdOactiv+2*nsdbOcont+w+(Ny-1)*pcStepY, met1, cont, metWidth, contW, contW, 0.09, contS)
         
-        MkPin(self, 'TIE2', 0, Box(l+2*nsdbOcont+1.9+GridFix((psdWidth-metWidth)/2)+(Nx-1)*pcStepX, -1.98-psdOactiv, l+2*nsdbOcont+1.9+GridFix((psdWidth+metWidth)/2)+(Nx-1)*pcStepX, 1.62+psdOactiv+2*nsdbOcont+w+(Ny-1)*pcStepY), met1)
+        MkPin(self, 'TIE2', 0, Box(l+2*nsdbOcont+1.9+GridFix((psdWidth-metWidth)/2)+(Nx-1)*pcStepX, -1.98-psdOactiv, l+2*nsdbOcont+1.9+GridFix((psdWidth+metWidth)/2)+(Nx-1)*pcStepX, 1.62+psdOactiv+2*nsdbOcont+w+(Ny-1)*pcStepY), met1_pin)
         dbCreateRect(self, met2, Box(nsdbOcont-0.05-0.98, nsdbOcont-1.145-1.12, nsdbOcont+0.05+l+0.98+(Nx-1)*pcStepX, nsdbOcont-1.145))
-        MkPin(self, 'PLUS', 0, Box(nsdbOcont-0.05-0.98, nsdbOcont-1.145-1.12, nsdbOcont+0.05+l+0.98+(Nx-1)*pcStepX, nsdbOcont-1.145), met2)
+        MkPin(self, 'PLUS', 0, Box(nsdbOcont-0.05-0.98, nsdbOcont-1.145-1.12, nsdbOcont+0.05+l+0.98+(Nx-1)*pcStepX, nsdbOcont-1.145), met2_pin)
         
         dbCreateRect(self, psd, Box(-1.9-psdWidth, -1.98, -1.9, 1.62+2*nsdbOcont+w+(Ny-1)*pcStepY))
         dbCreateRect(self, psd, Box(l+2*nsdbOcont+1.9+(Nx-1)*pcStepX, -1.98, l+2*nsdbOcont+psdWidth+1.9+(Nx-1)*pcStepX, 1.62+2*nsdbOcont+w+(Ny-1)*pcStepY))
