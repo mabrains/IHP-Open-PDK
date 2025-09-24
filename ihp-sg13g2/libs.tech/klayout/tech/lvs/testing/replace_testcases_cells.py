@@ -25,6 +25,7 @@ from pathlib import Path
 import shutil
 import difflib
 import logging
+import inspect
 
 BOUNDARY_LAYER = (189, 4)
 DIGISUB_LAYER = (60, 0)
@@ -148,37 +149,46 @@ def get_bbox_coordinates(bbox):
     return [point for point in re.split(r'\D', bbox_str) if point]
 
 
-def get_points_with_hole(outer_rect, inner_rect):
+def get_points_with_hole(rect_outer, rect_inner):
     """
     Generate points within an outer rectangle excluding points inside an inner rectangle (hole).
 
     Parameters:
-    - outer_rect: Tuple (x_min, y_min, x_max, y_max) for the outer rectangle.
-    - inner_rect: Tuple (x_min, y_min, x_max, y_max) for the inner rectangle (hole).
+    - rect_outer: Tuple (x_min, y_min, x_max, y_max) for the outer rectangle.
+    - rect_inner: Tuple (x_min, y_min, x_max, y_max) for the inner rectangle (hole).
 
     Returns:
-    - List of points (x, y) within the outer/inner rectangle
-        starts with center coordinates outer bottom edge
+    - List of points (x, y) along the outer/inner rectangle edges
+    - Starts at (X-center of inner), (Y-bottom of outer)
     """
 
-    x_min_outer, y_min_outer, x_max_outer, y_max_outer = outer_rect
-    x_min_inner, y_min_inner, x_max_inner, y_max_inner = inner_rect
+    current_func = inspect.currentframe().f_code.co_name
 
-    start_point = [int((x_min_outer + x_max_outer) / 2), y_min_outer]
-    end_point = [int((x_min_inner + x_max_inner) / 2), y_min_inner]
+    x_min_outer, y_min_outer, x_max_outer, y_max_outer = rect_outer
+    x_min_inner, y_min_inner, x_max_inner, y_max_inner = rect_inner
 
-    ring_points = [start_point]
+    x_both = sorted(rect_outer[0:3:2] + rect_inner[0:3:2])[0:4:3]
+    x_outer = rect_outer[0:3:2]
+    y_both = sorted(rect_outer[1:4:2] + rect_inner[1:4:2])[0:4:3]
+    y_outer = rect_outer[1:4:2]
+    if x_both != x_outer or y_both != y_outer:
+        error(f'{current_func}: Inner rect {rect_inner} is not inside outer rect {rect_outer}')
+
+    x_mid_inner = int((x_min_inner + x_max_inner) / 2)
+
+    ring_points = []
+    ring_points.append([x_mid_inner, y_min_outer])
     ring_points.append([x_min_outer, y_min_outer])
     ring_points.append([x_min_outer, y_max_outer])
     ring_points.append([x_max_outer, y_max_outer])
     ring_points.append([x_max_outer, y_min_outer])
-    ring_points.append(start_point)
-    ring_points.append([start_point[0], end_point[1]])
+    ring_points.append([x_mid_inner, y_min_outer])
+    ring_points.append([x_mid_inner, y_min_inner])
     ring_points.append([x_max_inner, y_min_inner])
     ring_points.append([x_max_inner, y_max_inner])
     ring_points.append([x_min_inner, y_max_inner])
     ring_points.append([x_min_inner, y_min_inner])
-    ring_points.append(end_point)
+    ring_points.append([x_mid_inner, y_min_inner])
 
     return ring_points
 
@@ -257,7 +267,7 @@ def clone_cdl_files(cdl_in: str, cell_list: list, ref_dir: str, out_dir: str,
                 warn(f'Already exists {dest_path} => Skipped copy', verbose=True)
             else:
                 warn(f'Copy {src_path} -> {dest_path}', verbose=True)
-                shutil.copy(src_path, dest_path)
+                shutil.copy2(src_path, dest_path)
 
         else:
             info(f'Clone subckt_ref[{cell_ref}] -> {dest_path}', verbose=True)
@@ -314,7 +324,7 @@ def insert_stdcell_frames(gds_in: str, cell_list: list, ref_dir: str, out_dir: s
             if cell_ref.endswith('_deep') or cell_ref.endswith('_flat'):
                 if not os.path.exists(dest_path):
                     info(f'Copy {src_path} -> {dest_path}', verbose=verbose)
-                    shutil.copy(src_path, dest_path)
+                    shutil.copy2(src_path, dest_path)
                 out_dir_by_cell[cell_ref] = os.path.dirname(dest_path)
                 continue
             else:
@@ -542,7 +552,7 @@ def copy_yaml_files(ref_dir: str, out_dir: str, *, verbose=False):
 
         if not os.path.exists(dest_path):
             info(f'Copy {each_path} -> {dest_path}', verbose=True)
-            shutil.copy(dest_path, dest_path)
+            shutil.copy2(dest_path, dest_path)
 
         flat_mode = False
         with open(each_path, 'r') as f_in:
@@ -590,8 +600,8 @@ if __name__ == "__main__":
                         help=f'Output result files directory (default={default_output_dir}')
     parser.add_argument('--cell_name', '-s', action='store',
                         help='Select executing cell name (default=all)')
-    parser.add_argument('--clean', '-c', action='store_true',
-                        help='Clean previous gds files in the output directory')
+    # parser.add_argument('--clean', '-c', action='store_true',
+    #                     help='Clean previous gds files in the output directory')
     parser.add_argument('--verbose', '-v', action='store_true',
                         help='Verbose mode on at gdsdiff')
     args = parser.parse_args()
@@ -611,8 +621,8 @@ if __name__ == "__main__":
 
     # Create result output directory if not exist
     out_path = Path(out_dir)
-    if args.clean:
-        shutil.rmtree(out_path)
+    # if args.clean:
+    #     shutil.rmtree(out_path)
     out_path.mkdir(parents=True, exist_ok=True)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -622,13 +632,14 @@ if __name__ == "__main__":
     # run_name = datetime.utcnow().strftime('replace_cells_%Y_%m_%d_%H_%M_%S')
     run_name = datetime.now(timezone.utc).strftime('replace_cells_%Y_%m_%d_%H_%M_%S')
     output_path = '.'
+    log_file = os.path.join(output_path, f'{run_name}.log')
 
     # logs format for replace cells
     """
     logging.basicConfig(
         level=logging.DEBUG,
         handlers=[
-            logging.FileHandler(os.path.join(output_path, f'{run_name}.log')),
+            logging.FileHandler(log_file),
             logging.StreamHandler(),
         ],
         format="%(asctime)s | %(levelname)-7s | %(message)s",
@@ -645,7 +656,7 @@ if __name__ == "__main__":
     console_handler.setLevel(logging.WARNING)
 
     # Create a file handler and set its log level
-    file_handler = logging.FileHandler(os.path.join(output_path, f'{run_name}.log'))
+    file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(logging.DEBUG)
 
     # Create a formatter and add it to the handlers
@@ -675,6 +686,7 @@ if __name__ == "__main__":
     # run_name = datetime.utcnow().strftime('gdsdiff_cells_%Y_%m_%d_%H_%M_%S')
     run_name = datetime.now(timezone.utc).strftime('gdsdiff_cells_%Y_%m_%d_%H_%M_%S')
     output_path = '.'
+    log_file = os.path.join(output_path, f'{run_name}.log')
 
     # logs format for GDS diff
     # Remove all existing handlers
@@ -682,7 +694,7 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.DEBUG,
         handlers=[
-            logging.FileHandler(os.path.join(output_path, f'{run_name}.log')),
+            logging.FileHandler(log_file),
             logging.StreamHandler(),
         ],
         format="%(asctime)s | %(levelname)-7s | %(message)s",
@@ -733,3 +745,8 @@ if __name__ == "__main__":
     # ~~~~~~~~~~~~~~~~~~~
     # copy_yaml_files(ref_dir, out_dir, verbose=args.verbose)
     copy_yaml_files(ref_dir, out_dir, verbose=True)
+
+    # ~~~~~~~~~~~~~~~~~~~
+    # Check ERROR
+    # ~~~~~~~~~~~~~~~~~~~
+    os.system(f'grep --color ERROR {log_file}')
