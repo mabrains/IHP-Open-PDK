@@ -1,29 +1,27 @@
 #! /usr/bin/env python3
 
 """
-replace_testcases_cells.py
-1. Uses klayout to modify the "testcases->gds" by inserting frame layers
-    into "libs.ref->sg13g2_stdcell.gds"
-    Inserting layers are
-    Rect: DigiSub.drawing-60/0, nBuLay.drawing-32/0
-    Ring: NWell.drawing-31/0
-2. Modify cdl files libs.ref->sg13g2_stdcell.cdl -> testcases_<cell>.cdl
+create_cell_testcases.py
+1. Use klayout to create the "testcases/sg13g2_cells/<cell>/layout/<cell>.gds" files
+    from "libs.ref/gds/sg13g2_stdcell.gds" by inserting frame layers
+    Inserted layers for each cell are
+    <cell>_digisub: Rect: DigiSub.drawing-60/0
+    <cell>_iso: Rect: nBuLay.drawing-32/0, Ring: NWell.drawing-31/0
+2. Create testcases/sg13g2_cells/<cell>/netlist/<cell>.cdl files
+    from "libs.ref/cdl/sg13g2_stdcell.cdl"
 """
 
 # import sys
-from sys import argv, stderr
+from sys import stderr
 import os
 import re
-import time
 from datetime import datetime, timezone
 import argparse
-# import json
 import pya
 from termcolor import cprint
 from pprint import pprint
 from pathlib import Path
 import shutil
-import difflib
 import logging
 import inspect
 
@@ -49,14 +47,12 @@ def die(message):
 
 
 def error(message, *, verbose=True):
-    # logging.error(message)
     logger.error(message)
     if verbose:
         cprint(message, 'red', attrs=['bold'], file=stderr)
 
 
 def warn(message, *, verbose=False):
-    # logging.warning(message)
     logger.warning(message)
     if verbose:
         # cprint(message, 'magenta', attrs=['bold'], file=stderr)
@@ -64,7 +60,6 @@ def warn(message, *, verbose=False):
 
 
 def info(message, *, verbose=False):
-    # logging.info(message)
     logger.info(message)
     if verbose:
         # cprint(message, 'green', attrs=['bold'])
@@ -72,7 +67,6 @@ def info(message, *, verbose=False):
 
 
 def debug(message, *, verbose=False):
-    # logging.debug(message)
     logger.debug(message)
     if verbose:
         # cprint(message, 'green', attrs=['bold'])
@@ -104,7 +98,7 @@ def get_rect_size(shape):
     return [width, height]
 
 
-def grow_rect(shape, sizing: int):
+def grow_rect(shape, sizing: list[int]):
     if not shape.is_box():
         die('Input shape object is not a rect')
 
@@ -218,9 +212,7 @@ def clone_cdl_files(cdl_in: str, cell_list: list, ref_dir: str, out_dir: str,
                     line_buf.append(next_line)
                     next_line = next(f_in)
                     input_line_number += 1
-                # pprint(f'{line_buf=}')
                 subckt_ref['HEADER'] = line_buf
-                # pprint(f'{subckt_ref=}')
                 continue
 
             elif input_line.startswith('*****'):
@@ -236,24 +228,12 @@ def clone_cdl_files(cdl_in: str, cell_list: list, ref_dir: str, out_dir: str,
                 line_buf.append(next_line)
                 subckt_ref[cell_name] = line_buf
 
-                subckt_ref[f'{cell_name}_digisub'] = []
-                subckt_ref[f'{cell_name}_iso'] = []
-                for line in subckt_ref[cell_name]:
-                    out_line = line.replace(cell_name, f'{cell_name}_digisub')
-                    subckt_ref[f'{cell_name}_digisub'].append(out_line)
-                    out_line = line.replace(cell_name, f'{cell_name}_iso')
-                    subckt_ref[f'{cell_name}_iso'].append(out_line)
-
     # pprint(f'{subckt_ref=}')
 
     out_dir_by_cell = {}
     for cell_ref in cell_list:
 
         search_cdl = find_files_by_extension(ref_dir, f'{cell_ref}.cdl')
-        if len(search_cdl) == 0:
-            warn(f'Reference cdl of {cell_ref} does not exist => Skipped', verbose=True)
-            continue
-
         src_path = search_cdl[0]
         dest_path = os.path.join(out_dir, f'{cell_ref}/netlist/{cell_ref}.cdl')
         # print(f'{cell_ref=} {src_path=} {dest_path=}')
@@ -262,12 +242,13 @@ def clone_cdl_files(cdl_in: str, cell_list: list, ref_dir: str, out_dir: str,
             out_path = Path(os.path.dirname(dest_path))
             out_path.mkdir(parents=True, exist_ok=True)
 
-        if cell_ref.endswith('_deep') or cell_ref.endswith('_flat'):
+        if cell_ref not in subckt_ref:
             if os.path.exists(dest_path):
                 warn(f'Already exists {dest_path} => Skipped copy', verbose=True)
             else:
                 warn(f'Copy {src_path} -> {dest_path}', verbose=True)
                 shutil.copy2(src_path, dest_path)
+            warn('Manual update may be needed', verbose=True)
 
         else:
             info(f'Clone subckt_ref[{cell_ref}] -> {dest_path}', verbose=True)
@@ -280,12 +261,12 @@ def clone_cdl_files(cdl_in: str, cell_list: list, ref_dir: str, out_dir: str,
                     f_out.write(line)
                 f_out.write('\n')
 
-                for line in subckt_ref[f'{cell_ref}_digisub']:
-                    f_out.write(line)
+                for line in subckt_ref[cell_ref]:
+                    f_out.write(line.replace(cell_ref, f"{cell_ref}_iso"))
                 f_out.write('\n')
 
-                for line in subckt_ref[f'{cell_ref}_iso']:
-                    f_out.write(line)
+                for line in subckt_ref[cell_ref]:
+                    f_out.write(line.replace(cell_ref, f"{cell_ref}_digisub"))
 
         out_dir_by_cell[cell_ref] = os.path.dirname(dest_path)
 
@@ -313,6 +294,11 @@ def insert_stdcell_frames(gds_in: str, cell_list: list, ref_dir: str, out_dir: s
 
         cell = layout.cell(cell_ref)
 
+        search_gds = find_files_by_extension(ref_dir, f'{cell_ref}.gds')
+        if len(search_gds) == 0:
+            warn(f'Reference gds of {cell_ref} does not exist => Skipped', verbose=True)
+            continue
+
         src_path = find_files_by_extension(ref_dir, f'{cell_ref}.gds')[0]
         dest_path = os.path.join(out_dir, f'{cell_ref}/layout/{cell_ref}.gds')
 
@@ -321,17 +307,13 @@ def insert_stdcell_frames(gds_in: str, cell_list: list, ref_dir: str, out_dir: s
             out_path.mkdir(parents=True, exist_ok=True)
 
         if not cell:
-            if cell_ref.endswith('_deep') or cell_ref.endswith('_flat'):
-                if not os.path.exists(dest_path):
-                    info(f'Copy {src_path} -> {dest_path}', verbose=verbose)
-                    shutil.copy2(src_path, dest_path)
-                out_dir_by_cell[cell_ref] = os.path.dirname(dest_path)
-                continue
-            else:
-                die(f'Can not find reference cell {cell_ref}')
-                # warn(f'Can not find reference cell {cell_ref} => Skipped')
-                # fh_out.write(cell_ref + '\n')
-                # continue
+            if not os.path.exists(dest_path):
+                info(f'Copy {src_path} -> {dest_path}', verbose=verbose)
+                shutil.copy(src_path, dest_path)
+            out_dir_by_cell[cell_ref] = os.path.dirname(dest_path)
+            warn(f'Copying non library cell {src_path} -> {dest_path}', verbose=verbose)
+            warn('Manual update may be needed', verbose=True)
+            continue
 
         info(f'Extracting cell => {cell.name}', verbose=True)
 
@@ -438,109 +420,6 @@ def insert_stdcell_frames(gds_in: str, cell_list: list, ref_dir: str, out_dir: s
     return out_dir_by_cell
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# GDS diff Procedure
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def run_gdsdiff(gds_in1: str, cell_name1: str, gds_in2: str, cell_name2: str,
-                *, verbose=False, exclude_layers=None):
-
-    # Check input args
-    gds_path = Path(gds_in1)
-    if not gds_path.exists():
-        die(f'Input gds-1 does not exist: {gds_in1}')
-    gds_path = Path(gds_in2)
-    if not gds_path.exists():
-        die(f'Input gds-2 does not exist: {gds_in2}')
-
-    # Load the two GDS files
-    layout1 = pya.Layout()
-    layout2 = pya.Layout()
-    layout1.read(gds_in1)
-    layout2.read(gds_in2)
-
-    # Get the cells by name
-    cell1 = layout1.cell(cell_name1)
-    cell2 = layout2.cell(cell_name2)
-
-    if not cell1:
-        warn(f"Cell-1 '{cell_name1}' not found in {gds_in1}", verbose=True)
-        return 1
-    elif not cell2:
-        warn(f"Cell-2 '{cell_name2}' not found in {gds_in2}", verbose=True)
-        return 1
-
-    info('#' + '~' * 80, verbose=False)
-    info('Running GDS diff =>', verbose=False)
-    info(f'  1. {gds_in1}::{cell_name1}', verbose=False)
-    info(f'  2. {gds_in2}::{cell_name2}', verbose=False)
-    info('#' + '~' * 80, verbose=False)
-
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Compare Layers
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    info(f'Layers in {gds_in1}/{cell_name1} =>', verbose=verbose)
-    cell_layers1 = sort_layers(get_cell_layers(layout1, cell1))
-    info(cell_layers1, verbose=verbose)
-    info(f'Layers in {gds_in2}/{cell_name2} =>', verbose=verbose)
-    cell_layers2 = sort_layers(get_cell_layers(layout2, cell2))
-    info(cell_layers2, verbose=verbose)
-
-    # Use difflib to generate a diff
-    cell_layers1_for_diff = [str(lay) for lay in cell_layers1]
-    cell_layers2_for_diff = [str(lay) for lay in cell_layers2]
-    layer_diff = difflib.unified_diff(cell_layers1_for_diff, cell_layers2_for_diff, lineterm="")
-    info('#<----- Layer Diff Results ----->')
-    for diff_line in layer_diff:
-        info(diff_line)
-        if diff_line.startswith('-('):
-            # logging.error(f'  => [{cell_name2}] Found missing layer {diff_line}')
-            logger.error(f'  => [{cell_name2}] Found missing layer {diff_line}')
-        elif diff_line.startswith('+(') and not re.search(r'\((?:32|60), 0\)', diff_line):
-            # logging.error(f'  => [{cell_name2}] Found unexpected layer {diff_line}')
-            logger.error(f'  => [{cell_name2}] Found unexpected layer {diff_line}')
-    info('#<-----       End          ---->')
-
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Compare shapes in common layers
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Extract shapes from the cells
-    common_layers = sort_layers(set(cell_layers1) & set(cell_layers2))
-    # info(f'{common_layers=}', verbose)
-
-    for lay in common_layers:
-        layer_index1 = layout1.layer(lay)
-        layer_index2 = layout2.layer(lay)
-
-        info(f'Extracting shapes on layer={lay} {layer_index1=} from {gds_in1}/{cell_name1}')
-        shapes1 = cell1.begin_shapes_rec(layer_index1)
-        info(f'Extracting shapes on layer={lay} {layer_index2=} from {gds_in2}/{cell_name2}')
-        shapes2 = cell2.begin_shapes_rec(layer_index2)
-
-        # Compare the shapes
-        is_identical = True
-
-        for shape1_iter, shape2_iter in zip(shapes1, shapes2):
-            shape1 = shape1_iter.shape()
-            shape2 = shape2_iter.shape()
-            info(f'{shape1=}', verbose=verbose)
-            info(f'{shape2=}', verbose=verbose)
-            if str(shape1) == str(shape2):
-                debug(f'Shape on {{{shape1=}}} and {{{shape2=}}} are identical', verbose=verbose)
-            else:
-                is_identical = False
-                warn(f'Shape on {{{shape1=}}} and {{{shape2=}}} are not identical', verbose=verbose)
-
-        if is_identical:
-            debug(f'Shapes on {lay} between {cell_name1} and {cell_name2} are identical', verbose=verbose)
-        else:
-            if lay in exclude_layers:
-                warn(f'Shapes on {lay} between {cell_name1} and {cell_name2} are not identical', verbose=True)
-            else:
-                die(f'Shapes on {lay} between {cell_name1} and {cell_name2} are not identical')
-
-        return is_identical
-
-
 def copy_yaml_files(ref_dir: str, out_dir: str, *, verbose=False):
 
     src_path = find_files_by_extension(ref_dir, '.yaml')
@@ -554,27 +433,8 @@ def copy_yaml_files(ref_dir: str, out_dir: str, *, verbose=False):
             info(f'Copy {each_path} -> {dest_path}', verbose=True)
             shutil.copy2(dest_path, dest_path)
 
-        flat_mode = False
-        with open(each_path, 'r') as f_in:
-            for line in f_in:
-                if re.search(r'--run_mode:\s*"flat"', line):
-                    flat_mode = True
-                if re.search(r'--allow_missing_ports', line):
-                    flat_mode = False
-
-        if flat_mode:
-            with open(dest_path, 'a') as f_add:
-                info(f'Add --allow_missing_ports option in {dest_path}', verbose=True)
-                f_add.write('  --allow_missing_ports:\n')
-
 
 if __name__ == "__main__":
-
-    if len(argv) < 2:
-        os.system(f'python3 {argv[0]} -h')
-        time.sleep(2)
-        print()
-        # sys.exit()
 
     SCRIPT_DIR = os.path.realpath(__file__)
 
@@ -586,7 +446,6 @@ if __name__ == "__main__":
                              SCRIPT_DIR)
 
     default_input_dir = './testcases/sg13g2_cells'
-    # default_output_dir ='./testcases/sg13g2_cells_new'
     default_output_dir = './testcases/sg13g2_cells'
 
     parser = argparse.ArgumentParser(description='Inserts frame shapes from reference GDS')
@@ -600,8 +459,8 @@ if __name__ == "__main__":
                         help=f'Output result files directory (default={default_output_dir}')
     parser.add_argument('--cell_name', '-s', action='store',
                         help='Select executing cell name (default=all)')
-    # parser.add_argument('--clean', '-c', action='store_true',
-    #                     help='Clean previous gds files in the output directory')
+    parser.add_argument('--clean', '-c', action='store_true',
+                        help='Clean previous gds files in the output directory')
     parser.add_argument('--verbose', '-v', action='store_true',
                         help='Verbose mode on at gdsdiff')
     args = parser.parse_args()
@@ -615,37 +474,16 @@ if __name__ == "__main__":
     if not chk_path.exists():
         die(f'Input path does not exist: {chk_path}')
 
-    CELL_LIST = [os.path.basename(gds_file).replace('.gds', '') for gds_file
-                 in find_files_by_extension(ref_dir, '.gds')]
+    CELL_LIST = [os.path.basename(cdl_file).replace('.cdl', '') for cdl_file
+                 in find_files_by_extension(ref_dir, '.cdl')]
     pprint(f'{CELL_LIST=}')
 
-    # Create result output directory if not exist
-    out_path = Path(out_dir)
-    # if args.clean:
-    #     shutil.rmtree(out_path)
-    out_path.mkdir(parents=True, exist_ok=True)
-
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Repalce GDS & CDL in testcases/sg13g2_cells with libs.ref/sg13g2_stdcell
+    # Replace GDS & CDL in testcases/sg13g2_cells with libs.ref/sg13g2_stdcell
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # DeprecatingWarning: date.datetime.utcnow()
-    # run_name = datetime.utcnow().strftime('replace_cells_%Y_%m_%d_%H_%M_%S')
-    run_name = datetime.now(timezone.utc).strftime('replace_cells_%Y_%m_%d_%H_%M_%S')
+    run_name = datetime.now(timezone.utc).strftime('create_cells_%Y_%m_%d_%H_%M_%S')
     output_path = '.'
     log_file = os.path.join(output_path, f'{run_name}.log')
-
-    # logs format for replace cells
-    """
-    logging.basicConfig(
-        level=logging.DEBUG,
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler(),
-        ],
-        format="%(asctime)s | %(levelname)-7s | %(message)s",
-        datefmt="%d-%b-%Y %H:%M:%S",
-    )
-    """
 
     # Create a logger
     logger = logging.getLogger('mon_logger')
@@ -668,8 +506,17 @@ if __name__ == "__main__":
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
 
+    # Create result output directory if not exist
+    out_path = Path(out_dir)
+    if args.clean:
+        if Path(ref_dir) == out_path:
+            warn(f"Can not clean output directory {out_path} because it is also the reference directory.")
+        else:
+            shutil.rmtree(out_path)
+    out_path.mkdir(parents=True, exist_ok=True)
+
     # ~~~~~~~~~~~~~~~~~~~
-    # Repalce cdl
+    # Replace cdl
     # ~~~~~~~~~~~~~~~~~~~
     clone_cdl_files(cdl_ref, CELL_LIST, ref_dir, out_dir, verbose=args.verbose)
 
@@ -679,71 +526,8 @@ if __name__ == "__main__":
     saved_dir = insert_stdcell_frames(gds_ref, CELL_LIST, ref_dir, out_dir, verbose=args.verbose)
 
     # ~~~~~~~~~~~~~~~~~~~
-    # GDS diff
-    # ~~~~~~~~~~~~~~~~~~~
-    """
-    # DeprecatingWarning: date.datetime.utcnow()
-    # run_name = datetime.utcnow().strftime('gdsdiff_cells_%Y_%m_%d_%H_%M_%S')
-    run_name = datetime.now(timezone.utc).strftime('gdsdiff_cells_%Y_%m_%d_%H_%M_%S')
-    output_path = '.'
-    log_file = os.path.join(output_path, f'{run_name}.log')
-
-    # logs format for GDS diff
-    # Remove all existing handlers
-    logging.getLogger().handlers = []
-    logging.basicConfig(
-        level=logging.DEBUG,
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler(),
-        ],
-        format="%(asctime)s | %(levelname)-7s | %(message)s",
-        datefmt="%d-%b-%Y %H:%M:%S",
-    )
-    """
-
-    for cell_name in CELL_LIST:
-        if args.cell_name:
-            if cell_name != args.cell_name:
-                continue
-
-        gds_out = os.path.join(out_dir, cell_name + '.gds'), cell_name,
-
-        chk_status = run_gdsdiff(
-            gds_ref, cell_name,
-            os.path.join(saved_dir[cell_name], cell_name + '.gds'), cell_name,
-            verbose=args.verbose
-        )
-        if chk_status:
-            info(f'{cell_name} gdsdiff passed', verbose=True)
-        else:
-            error(f'{cell_name} gdsdiff failed', verbose=True)
-
-        chk_status = run_gdsdiff(
-            gds_ref, cell_name,
-            os.path.join(saved_dir[cell_name], cell_name + '.gds'), cell_name + '_digisub',
-            verbose=args.verbose
-        )
-        if chk_status:
-            info(f'{cell_name} gdsdiff passed', verbose=True)
-        else:
-            error(f'{cell_name} gdsdiff failed', verbose=True)
-
-        chk_status = run_gdsdiff(
-            gds_ref, cell_name,
-            os.path.join(saved_dir[cell_name], cell_name + '.gds'), cell_name + '_iso',
-            exclude_layers=[(31, 0)],
-            verbose=args.verbose
-        )
-        if chk_status:
-            info(f'{cell_name} gdsdiff passed', verbose=True)
-        else:
-            error(f'{cell_name} gdsdiff failed', verbose=True)
-
-    # ~~~~~~~~~~~~~~~~~~~
     # Copy yaml
     # ~~~~~~~~~~~~~~~~~~~
-    # copy_yaml_files(ref_dir, out_dir, verbose=args.verbose)
     copy_yaml_files(ref_dir, out_dir, verbose=True)
 
     # ~~~~~~~~~~~~~~~~~~~
