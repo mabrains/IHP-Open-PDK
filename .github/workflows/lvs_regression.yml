@@ -93,5 +93,8 @@ jobs:
           echo "✅ KLayout version:"
           klayout -v
 
+      - name: 🧪 Install termcolor
+        run: pip install termcolor
+
       - name: 🧪 Run LVS Regression for SG13G2 Cells
         run: make test-LVS-cells
