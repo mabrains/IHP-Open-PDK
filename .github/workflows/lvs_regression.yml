@@ -94,7 +94,7 @@ jobs:
           klayout -v
 
       - name: 🧪 Install termcolor
-        run: sudo pip install termcolor
+        run: uv pip install termcolor
 
       - name: 🧪 Run LVS Regression for SG13G2 Cells
         run: make test-LVS-cells
