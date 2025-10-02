@@ -11,7 +11,6 @@ Explains how to use the SG13G2 LVS rule decks.
   - [Installation](#installation)
   - [Usage](#usage)
     - [CLI](#cli)
-      - [LVS Outputs](#lvs-outputs)
     - [GUI](#gui)
 
 
@@ -98,8 +97,7 @@ The `run_lvs.py` script takes your gds and netlist files to run LVS rule decks w
 
 - `--verbose`                         Enables detailed rule execution logs for debugging purposes.
 
-- `--implicit_nets=<nets>`            Specifies a comma-separated list of net names for implicit connections (e.g., "VDD,VSS"). Use "*" for all labeled nets.
-
+- `--implicit_nets=<nets>`            Specifies a comma-separated list of net names or patterns for implicit connections (e.g., `"VDD,VSS"`), matching is case-sensitive (e.g., `"VDD"` ≠ `"vdd"`). Use `"*"` to apply to all labeled nets.
 
 ---
 **NOTE**
