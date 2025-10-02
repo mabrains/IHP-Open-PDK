@@ -43,7 +43,8 @@ Options:
     --purge                             Removes unused nets from both layout and schematic netlists.
     --purge_nets                        Purges floating nets from both layout and schematic netlists.
     --verbose                           Enables detailed rule execution logs for debugging purposes.
-    --implicit_nets=<nets>              Specifies a comma-separated list of net names for implicit connections (e.g., "VDD,VSS"). Use "*" for all labeled nets.
+    --implicit_nets=<nets>              Specifies a comma-separated list of net names for implicit connections
+                                        (e.g., "VDD,VSS"). Use "*" for all labeled nets.
 """
 
 from docopt import docopt
