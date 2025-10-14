@@ -92,4 +92,4 @@ jobs:
           echo "✅ KLayout version:"
           klayout -v
       - name: 🧪 Run DRC Regression for SG13G2 Cells
-        run: make test-drc-cells
+        run: make test-DRC-cells
