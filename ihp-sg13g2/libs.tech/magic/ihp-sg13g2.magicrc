@@ -31,8 +31,7 @@ tech load [file dirname [file normalize [info script]]]/ihp-sg13g2.tech
 if {[tech name] != "ihp-sg13g2"} {quit -noprompt}
 
 # load device generator
-# NOTE:  Commented out for alpha pre-release.
-# source [file dirname [file normalize [info script]]]/ihp-sg13g2.tcl
+source [file dirname [file normalize [info script]]]/ihp-sg13g2.tcl
 
 # load bind keys (optional)
 # source [file dirname [file normalize [info script]]]/ihp-sg13g2-BindKeys
@@ -43,7 +42,7 @@ snap lambda
 # set sg13g2 standard power, ground, and substrate names
 set VDD VDD
 set GND VSS
-set SUB VSUB
+set SUB sub!
 
 # Allow override of type of magic library views used, "mag" or "maglef",
 # from environment variable MAGTYPE
