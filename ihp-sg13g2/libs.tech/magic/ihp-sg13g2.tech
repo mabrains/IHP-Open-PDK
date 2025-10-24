@@ -243,11 +243,11 @@ types
   metal7 rm7,rmetal7,rmet7
  -metal7 obsm7
  -metal7 m7fill
- -metal7 seal
 
 # Passivation cut
  -passiv pillar,cu
  -passiv solder,sbump
+ -passiv seal
   passiv pad
 
 # Miscellaneous
@@ -475,7 +475,7 @@ styles
   rm3       metal3         poly_resist_stripes
   obsm3     metal3
   via3      metal3         metal4  via3alt
-  sealv3    metal4	   metal4  via3alt
+  sealv3    metal3	   metal4  via3alt
 
   metal4    metal4
   m4fill    metal4
@@ -602,6 +602,11 @@ end
 connect
   *nwell,*nsd,*ntap,*hvnsd,*hvntap,dnwell,pnp *nwell,*nsd,*ntap,*hvnsd,*hvntap,dnwell,pnp
   pwell,*psd,*ptap,*hvpsd,*hvptap,digisub pwell,*psd,*ptap,*hvpsd,*hvptap,digisub
+  # Note:  This connects butting taps even without a metal strap.
+  *nsd,*hvnsd	*pdiff,*hvpdiff
+  *psd,*hvpsd	*ndiff,*hvndiff
+  *ntap,*hvntap	*pdiff,*hvpdiff
+  *ptap,*hvptap	*ndiff,*hvndiff
   npn,pbc	npn,pbc
   pbc,*m1	pbc,*m1
   *m1,m1fill,iprobe,diffprobe	*m1,m1fill,iprobe,diffprobe

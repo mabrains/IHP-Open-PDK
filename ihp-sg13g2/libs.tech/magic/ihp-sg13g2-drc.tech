@@ -341,6 +341,10 @@ drc
 
  variants (full)
  cifwidth seal_active 3500 "EdgeSeal-Activ width < 3.5um (Seal.a)"
+ cifspacing all_diff_but_psd all_seal 4900 touching_illegal \
+	"Diffusion spacing to seal < 4.9um (Seal.b)"
+ cifspacing non_seal_psd seal_active 4870 touching_illegal \
+	"Diffusion spacing to seal diffusion < 4.87um (Seal.b - pSD.c1)"
  variants *
 
 #-------------------------------------------------------------
@@ -849,13 +853,18 @@ variants *
 
  # MiM cap contact rules (Vmim)
 
- width mimcc/m6 1260 "MiM contact width < %d (TV1.a + 2 * TV1.d)"
+ width mimcc/m6 1140 "MiM contact width < %d (TV1.a + 2 * MIM.d)"
 
  # Prevent interactions between MIMCC and VIA5
  exact_overlap mimcc/m6
  no_overlap mimcc/m6 via5/m6
  spacing mimcc/m6 via5/m6 1117 touching_illegal \
 	"MiM cap contact to TopVia1 spacing < 1.17um (MIM.c + MIM.d + M5.b)"
+
+ # Note:  This should be done with a bloat-all <dist> DRC CIF rule,
+ # but need a definition of the error, which is missing in the document.
+ spacing mimcap via4/m5 810 touching_illegal \
+	"Via4 cannot contact MiM cap bottom plate (MIM.i)"
 
  variants (full)
  cifmaxwidth mimcap_missing_via 0 bend_illegal \

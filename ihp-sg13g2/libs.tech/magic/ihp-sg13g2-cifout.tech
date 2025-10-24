@@ -782,7 +782,7 @@ style gdsii
  layer MIMCC	mimcc
 	# 0.84um separation is not a DRC requirement but is used
 	# in the example MiM cap layouts.
- 	squares-grid 420 420 840
+ 	squares-grid 360 420 840
  	calma 	129 0
 
 #----------------------------------------------------------------
@@ -1138,30 +1138,30 @@ style drc
 
  # Identify butted p-tap areas
  templayer butted_tap
-	bloat-all ndiff *psd
-	bloat-all hvndiff *hvpsd
-	bloat-all pdiff *nsd
-	bloat-all hvpdiff *hvnsd
+	bloat-all ndiff *psd,*ptap
+	bloat-all hvndiff *hvpsd,*hvptap
+	bloat-all pdiff *nsd,*ntap
+	bloat-all hvpdiff *hvnsd,*hvntap
 	and-not ndiff,hvndiff,pdiff,hvpdiff
 
  templayer butted_diff
- 	bloat-all psd *ndiff
- 	bloat-all hvpsd *hvndiff
- 	bloat-all nsd *pdiff
- 	bloat-all hvnsd *hvpdiff
- 	and-not psd,hvpsd,nsd,hvnsd
+ 	bloat-all psd,ptap *ndiff
+ 	bloat-all hvpsd,hvptap *hvndiff
+ 	bloat-all nsd,ntap *pdiff
+ 	bloat-all hvnsd,hvntap *hvpdiff
+ 	and-not psd,hvpsd,nsd,hvnsd,ptap,hvptap,ntap,hvntap
 
  # No uncontacted butted tap area should be more than 6um away from a contact.
  templayer tap_far_from_contact
 	bloat-all pdc,ndc,hvpdc,hvndc alldiff 6000
 	and butted_tap,butted_diff
-	noninteracting psc,nsc,ptapc,ntapc,hvpsc,hvnsc,hvptapc,hvntapc
+	noninteracting psc,nsc,ptapc,ntapc,hvpsc,hvnsc,hvptapc,hvntapc,sealc
 
  templayer latchup_error butted_tap
 	and-not tap_far_from_contact
 
  templayer tap_contact_halo
-	bloat-all psc,nsc,ptapc,ntapc,hvpsc,hvnsc,hvptapc,hvntapc \
+	bloat-all psc,nsc,ptapc,ntapc,hvpsc,hvnsc,hvptapc,hvntapc,sealc \
 		allnactivetap,allpactivetap 6000
 
  templayer tap_far_from_tap_contact psd,nsd,ptap,ntap,hvpsd,hvnsd,hvptap,hvntap
@@ -1237,6 +1237,18 @@ style drc
  templayer seal_metal7 sealv6
 	grow 1300
 	and m7
+
+ templayer non_seal_psd *psd
+	and-not seal_active
+
+ templayer all_seal seal_active
+	or seal_metal1,seal_metal2,seal_metal3
+	or seal_metal4,seal_metal5,seal_metal6
+	or seal_metal7
+
+ # Should this list include active fill?
+ templayer all_diff_but_psd *ndiff,*nsd,*hvndiff,*hvnsd
+	or *pdiff,*hvpdiff,*hvpsd
 
 #----------------------------------------------------------------
 style density

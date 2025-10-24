@@ -889,8 +889,8 @@ style  sg13g2 variants ()
 
  layer mimcc VIA5,MIMCC
  and MIM
- grow 840
- shrink 420
+ grow 420
+ shrink 60
  labels MIM
 
  layer m2c VIA1
