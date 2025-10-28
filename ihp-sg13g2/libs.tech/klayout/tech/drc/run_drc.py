@@ -400,6 +400,7 @@ def generate_klayout_switches(arguments, layout_path: str) -> dict:
     switches["density"] = "false" if arguments.no_density else "true"
     switches["no_forbidden"] = "false"
     switches["no_pin"] = "false"
+    switches["no_recommended"] = "true" if arguments.no_recommended else "false"
 
     # Set topcell and input layout
     switches["topcell"] = get_run_top_cell_name(arguments, layout_path)
@@ -741,7 +742,7 @@ def parse_args():
             [--topcell=<topcell_name>] [--run_mode=<mode>] [--drc_json=<json_path>]
             [--precheck_drc] [--disable_extra_rules] [--no_feol] [--no_beol] [--no_density]
             [--density_thr=<density_threads>] [--density_only] [--antenna]
-            [--antenna_only] [--no_offgrid]
+            [--antenna_only] [--no_offgrid] [--no_recommended]
     """
 
     parser = argparse.ArgumentParser(
@@ -833,6 +834,9 @@ def parse_args():
     )
     parser.add_argument(
         "--no_offgrid", action="store_true", help="Disable offgrid rule checks."
+    )
+    parser.add_argument(
+        "--no_recommended", action="store_true", help="Disable recommended rule checks."
     )
 
     return parser.parse_args()
