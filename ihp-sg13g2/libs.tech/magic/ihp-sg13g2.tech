@@ -119,10 +119,9 @@ types
   active hvpmos,hvptransistor,hvpfet
  -active hvnmosesd,hvntransistoresd,hvnfetesd
  -active hvpmosesd,hvptransistoresd,hvpfetesd
-  active hvvaractor,hvvaract,hvvar
-  active hvvarcontact,hvvarc,hvvc
-  # parasitic varactor formed by poly over HV ptap
-  active hvpvaractor,hvpvaract,hvpvar
+  active varactor,varact,var
+  active varcontact,varc
+  active pvaractor,pvaract,pvar
  -active fillfet
  -active sealcont,sealc
 
@@ -272,17 +271,17 @@ contact
   pdic     pdiode     metal1
   sdic     schottky   metal1
   nec	   nemitter   metal1
-  hvnec	   hvnemitter metal1
   ntapc	   ntap	      metal1
   ptapc	   ptap	      metal1
+  varc     varact     metal1
 
   hvndc    hvndiff   metal1
   hvpdc    hvpdiff   metal1
   hvnsc    hvnsd     metal1
   hvpsc    hvpsd     metal1
-  hvvarc   hvvar     metal1
   hvntapc  hvntap    metal1
   hvptapc  hvptap    metal1
+  hvnec	   hvnemitter metal1
 
   via1   metal1 metal2
   via2   metal2 metal3
@@ -307,31 +306,31 @@ aliases
 
   allnfets	   nfet,hvnfet,hvnfetesd
   allpfets	   pfet,hvpfet,hvpfetesd
-  allfets	   allnfets,allpfets,*hvvar,hvpvar
+  allfets	   allnfets,allpfets,*var,pvar
   allfetsstd	   nfet,hvnfet,hvnfetesd,pfet,hvpfet,hvpfetesd
 
   allnactivenonfet *ndiff,*nsd,*ndiode,*hvndiff,*hvnsd,hvndiffres,*ntap,*hvntap
   allnactive	   allnactivenonfet,allnfets
   allnactivenontap *ndiff,*ndiode,*hvndiff,allnfets
-  allnactivetap	   *nsd,*hvnsd,*hvvar,*ntap,*hvntap
+  allnactivetap	   *nsd,*hvnsd,*var,*ntap,*hvntap
 
   allpactivenonfet *pdiff,*psd,*pdiode,*hvpdiff,*hvpsd,*ptap,*hvptap
   allpactive	   allpactivenonfet,allpfets
   allpactivenontap *pdiff,*pdiode,*hvpdiff,allpfets
-  allpactivetap    *psd,*hvpsd,hvpvar,*ptap,*hvptap
+  allpactivetap    *psd,*hvpsd,*ptap,*hvptap
 
   allactivenonfet  allnactivenonfet,allpactivenonfet
   allactive	   allactivenonfet,allfets
 
-  allndifflv       *ndif,*nsd,*ndiode,nfet,*ntap
-  allpdifflv       *pdif,*psd,*pdiode,pfet,*ptap
+  allndifflv       *ndif,*nsd,*ndiode,nfet,*ntap,*var
+  allpdifflv       *pdif,*psd,*pdiode,pfet,*ptap,pvar
   alldifflv        allndifflv,allpdifflv
   allndifflvnonfet *ndif,*nsd,*ndiode,*ntap
   allpdifflvnonfet *pdif,*psd,*pdiode,*ptap
   alldifflvnonfet  allndifflvnonfet,allpdifflvnonfet
 
-  allndiffhv       *hvndif,*hvnsd,hvnfet,hvnfetesd,hvndiffres,*hvvar,*hvntap
-  allpdiffhv       *hvpdif,*hvpsd,hvpfet,hvpfetesd,hvpvar,*hvptap
+  allndiffhv       *hvndif,*hvnsd,hvnfet,hvnfetesd,hvndiffres,*hvntap
+  allpdiffhv       *hvpdif,*hvpsd,hvpfet,hvpfetesd,*hvptap
   alldiffhv        allndiffhv,allpdiffhv
   allndiffhvnontap *hvndif,hvnfet,hvnfetesd
   allpdiffhvnontap *hvpdif,hvpfet,hvpfetesd
@@ -341,6 +340,7 @@ aliases
   alldiffhvnonfet  allndiffhvnonfet,allpdiffhvnonfet
 
   alldiffnonfet	   alldifflvnonfet,alldiffhvnonfet
+  alldiffnonvar	   alldiffhv,alldifflvnonfet,nfet,pfet
   alldiff	   alldifflv,alldiffhv
 
   allpolyres	   pres,nres,xres
@@ -360,7 +360,7 @@ aliases
   alldiffconthv	   allndiffconthv,allpdiffconthv
   alldiffcont	   alldiffcontlv,alldiffconthv
 
-  allcont	alldiffcont,pc,hvvarc
+  allcont	alldiffcont,pc,varc
 
   allres	allpolyres,hvndiffres,isodiffres,hvisodiffres
 
@@ -436,9 +436,9 @@ styles
   hvpsc     pdiff_in_pwell metal1  contact_X'es hvpdiff_mask
   hvntapc   ndiff_in_nwell metal1  contact_X'es hvndiff_mask
   hvptapc   pdiff_in_pwell metal1  contact_X'es hvpdiff_mask
-  hvvar	    polysilicon	   ndiff_in_nwell hvndiff_mask
-  hvpvar    polysilicon	   pdiff_in_pwell hvpdiff_mask
-  hvvarc    polysilicon	   ndiff_in_nwell hvndiff_mask  contact_X'es
+  var	    polysilicon	   ndiff_in_nwell
+  pvar	    polysilicon	   pdiff_in_pwell
+  varc      polysilicon	   metal1  ndiff_in_nwell contact_X'es
 
   poly      polysilicon 
   polyfill  polysilicon
@@ -534,11 +534,11 @@ end
 compose
   compose  nfet  poly  ndiff
   compose  pfet  poly  pdiff
+  compose  var   poly  nsd
+  compose  pvar  poly  psd
 
   compose  hvnfet  poly  hvndiff
   compose  hvpfet  poly  hvpdiff
-  compose  hvvar   poly  hvnsd
-  compose  hvpvar  poly  hvpsd
 
   compose  fillfet polyfill difffill
 

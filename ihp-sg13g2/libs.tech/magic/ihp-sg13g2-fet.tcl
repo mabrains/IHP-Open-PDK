@@ -416,11 +416,12 @@ proc sg13g2::mos_device {parameters} {
 	}
     }
     paint ${poly_type}
-    set cext [sg13g2::getbox]
+    set polybox [sg13g2::getbox]
     popbox
     # save gate area now and paint later, so that diffusion surrounding the
     # contact does not paint over the gate area, in case the gate type is
     # not part of a "compose" entry in the techfile.
+    set cext [sg13g2::getbox]
     set gaterect [box values]
     popbox
 
@@ -834,6 +835,7 @@ proc sg13g2::mos_device {parameters} {
     }
 
     popbox
+    set cext [sg13g2::unionbox $cext $polybox]
     return $cext
 }
 
@@ -1235,6 +1237,7 @@ proc sg13g2::sg13_hv_pmos_draw {parameters} {
 	    poly_contact_type	pc \
 	    sub_type		nwell \
 	    dev_sub_type	nwell \
+	    sub_surround	0.62 \
 	    guard_sub_surround	0.62 \
     ]
     set drawdict [dict merge $sg13g2::ruleset $newdict $parameters]

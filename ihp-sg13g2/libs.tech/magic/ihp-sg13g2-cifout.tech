@@ -56,6 +56,13 @@ style gdsii
 	bloat-all *ntap,*hvntap nwell
 	calma	32 0
 
+ layer DNWELL
+	bloat-all *var *nsd
+	grow 240
+	and nwell
+	shrink 240
+	calma	32 0
+
 #----------------------------------------------------------------
 # SUBCUT
 #----------------------------------------------------------------
@@ -107,7 +114,7 @@ style gdsii
  templayer diffmaskarea
 	bloat-or isodiffres * 0 *ndiff 130 *psd 200
 
- layer DIFF 	allnactive,allpactive,*schottky,hvisodiffres,*hvvar,hvpvar,sealc
+ layer DIFF 	allnactive,allpactive,*schottky,hvisodiffres,*var,pvar,sealc
 	and-not diffmaskarea
  	calma 	1 0
 
@@ -161,9 +168,9 @@ style gdsii
 # Identify a varactor area, which generates its own thick oxide mask
 # and its own PSD mask
 
- templayer varactorarea hvpvar
+ templayer varactorarea pvar
 	grow 580
-	bloat-all *hvvar nwell
+	bloat-all *var nwell
 	maxrect external
 
 # Identify a PNP area, which also generates its own PSD mask.
@@ -206,7 +213,9 @@ style gdsii
  # Varactor (SVaricap) generates its own PSD around the diffusion
  # tab passing under the gate on top and bottom.
  layer PSD
-	bloat-or hvpmos,hvpvar,hvpsd * 100 *hvvar 0
+	bloat-all pvar psd
+	bloat-or pvar * 0 *var 10
+	grow 130
 	and varactorarea
 	calma	14 0
 
@@ -363,8 +372,8 @@ style gdsii
 
  layer THKOX schottkyarea,varactorarea
 	grow 100
-	or alldiffhv,hvvar,hvpvar
-        bloat-or alldiffhv,hvvar,hvpvar * 185 alldifflv 0
+	or alldiffhv,var,pvar
+        bloat-or alldiffhv,var,pvar * 185 alldifflv 0
 	grow-min 860
 	bridge 860 860
 	grow	430
@@ -1078,7 +1087,7 @@ style drc
 
  # Make sure varactor nwell contains no P diffusion
  templayer pdiff_in_varactor_well
- bloat-all hvvar nwell
+ bloat-all var nwell
  and allpactive
 
  # Find minimum hole sizes in diffusion

@@ -14,20 +14,18 @@ proc sg13g2::subconn_draw {} {
    suspendall
    paint psc
    pushbox
+   pushbox
+   box grow c 0.07um
+   paint psd
+   popbox
    if {$w > $h} {
       box grow e 0.05um
       box grow w 0.05um
-      paint m1
-      box grow e 0.02um
-      box grow w 0.02um
    } else {
       box grow n 0.05um
       box grow s 0.05um
-      paint m1
-      box grow n 0.02um
-      box grow s 0.02um
    }
-   paint psd
+   paint m1
    popbox
    resumeall
 }
@@ -48,20 +46,18 @@ proc sg13g2::hvsubconn_draw {} {
    suspendall
    paint hvpsc
    pushbox
+   box grow c 0.07um
+   paint hvpsd
+   pushbox
+   popbox
    if {$w > $h} {
       box grow e 0.05um
       box grow w 0.05um
-      paint m1
-      box grow e 0.02um
-      box grow w 0.02um
    } else {
       box grow n 0.05um
       box grow s 0.05um
-      paint m1
-      box grow n 0.02um
-      box grow s 0.02um
    }
-   paint hvpsd
+   paint m1
    popbox
    resumeall
 }
@@ -204,7 +200,7 @@ proc sg13g2::nwell_draw {} {
    tech unlock *
    pushbox
    pushbox
-   box grow c 0.265um
+   box grow c 0.390um
    paint nwell
    popbox
 
@@ -235,7 +231,7 @@ proc sg13g2::hvnwell_draw {} {
    tech unlock *
    pushbox
    pushbox
-   box grow c 0.415um
+   box grow c 0.770um
    paint nwell
    popbox
 
@@ -264,36 +260,27 @@ proc sg13g2::deep_nwell_draw {} {
    paint dnwell
    pushbox
    pushbox
-   box grow c 0.4um
-   # Note:  Previous implementation was to draw nwell over the whole
-   # area and then erase it from the center.  That can interact with
-   # any layout already drawn in the center area.  Instead, draw four
-   # separate rectangles.
-   # -----------------
-   # paint nwell
-   # box grow c -1.05um
-   # erase nwell
-   # -----------------
+   box grow c 0.425um
    pushbox
-   box width 1.05um
+   box width 0.79um
    paint nwell
    popbox
    pushbox
-   box height 1.05um
+   box height 0.79um
    paint nwell
    popbox
    pushbox
    box move n ${h}um
-   box move n 0.8um
-   box move s 1.05um
-   box height 1.05um
+   box move n 0.85um
+   box move s 0.79um
+   box height 0.79um
    paint nwell
    popbox
    pushbox
    box move e ${w}um
-   box move e 0.8um
-   box move w 1.05um
-   box width 1.05um
+   box move e 0.85um
+   box move w 0.79um
+   box width 0.79um
    paint nwell
    popbox
 
@@ -309,7 +296,7 @@ proc sg13g2::deep_nwell_draw {} {
    box grow s -0.3um
    paint nsc
    popbox
-   box grow c 0.1um
+   box grow c 0.07um
    paint nsd
    popbox
 
@@ -322,7 +309,7 @@ proc sg13g2::deep_nwell_draw {} {
    box grow w -0.3um
    paint nsc
    popbox
-   box grow c 0.1um
+   box grow c 0.07um
    paint nsd
    popbox
 
@@ -336,7 +323,7 @@ proc sg13g2::deep_nwell_draw {} {
    box grow w -0.3um
    paint nsc
    popbox
-   box grow c 0.1um
+   box grow c 0.07um
    paint nsd
    popbox
 
@@ -349,7 +336,7 @@ proc sg13g2::deep_nwell_draw {} {
    box grow n -0.3um
    box grow s -0.3um
    paint nsc
-   box grow c 0.1um
+   box grow c 0.07um
    paint nsd
    popbox
 
@@ -376,27 +363,27 @@ proc sg13g2::hvdeep_nwell_draw {} {
    paint dnwell
    pushbox
    pushbox
-   box grow c 0.55um
+   box grow c 0.805um
    pushbox
-   box width 1.58um
+   box width 1.55um
    paint nwell
    popbox
    pushbox
-   box height 1.58um
+   box height 1.55um
    paint nwell
    popbox
    pushbox
    box move n ${h}um
-   box move n 1.1um
-   box move s 1.58um
-   box height 1.58um
+   box move n 1.61um
+   box move s 1.55um
+   box height 1.55um
    paint nwell
    popbox
    pushbox
    box move e ${w}um
-   box move e 1.1um
-   box move w 1.58um
-   box width 1.58um
+   box move e 1.61um
+   box move w 1.55um
+   box width 1.55um
    paint nwell
    popbox
 
@@ -412,7 +399,7 @@ proc sg13g2::hvdeep_nwell_draw {} {
    box grow s -0.3um
    paint hvnsc
    popbox
-   box grow c 0.1um
+   box grow c 0.07um
    paint hvnsd
    popbox
 
@@ -425,7 +412,7 @@ proc sg13g2::hvdeep_nwell_draw {} {
    box grow w -0.3um
    paint hvnsc
    popbox
-   box grow c 0.1um
+   box grow c 0.07um
    paint hvnsd
    popbox
 
@@ -439,7 +426,7 @@ proc sg13g2::hvdeep_nwell_draw {} {
    box grow w -0.3um
    paint hvnsc
    popbox
-   box grow c 0.1um
+   box grow c 0.07um
    paint hvnsd
    popbox
 
@@ -452,7 +439,7 @@ proc sg13g2::hvdeep_nwell_draw {} {
    box grow n -0.3um
    box grow s -0.3um
    paint hvnsc
-   box grow c 0.1um
+   box grow c 0.07um
    paint hvnsd
    popbox
 

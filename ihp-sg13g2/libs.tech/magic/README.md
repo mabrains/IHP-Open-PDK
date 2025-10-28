@@ -209,6 +209,8 @@ It is not recommended for use with the magic/netgen LVS flow.
 | nres                                 | rsil                  |
 | pres                                 | rppd                  |
 | xres                                 | rhigh                 |
+| ptap1				       | ptap1		       |
+| ntap1				       | ntap1		       |
 
 | Devices not extracted                                                            |
 |----------------------------------------------------------------------------------|
@@ -217,8 +219,6 @@ It is not recommended for use with the magic/netgen LVS flow.
 | inductor (requires additional information provided by the device generator)      |
 | iprobe, diffstbprobe (insufficient information and no device model)              |
 | SVaricap (no device model)                                                       |
-| ptap1 (to be completed)                                                          |
-| ntap1 (to be completed)                                                          |
 
 "RF" versions of devices are not separate device models but are enabled by
 passing parameter "rfmode" to the device model.  This parameter passing
@@ -245,11 +245,19 @@ known sheet resistance values.
 | isodiffres   | diffusion resistor in isolated pwell taps |
 | hvisodiffres | diffusion resistor in SCR ptap            |
 
+SVaricap is an sg13g2 subcircuit, but the underlying device model
+is an gs13_hv_svaricap.  The SVaricap subcircuit contains two of
+these.
+
+| device           | description                           |
+|------------------|---------------------------------------|
+| sg13_hv_svaricap | varactor				   |
+
 **Ignored devices**:
 
 | device      | description                                         |
 |-------------|-----------------------------------------------------|
-| hvpvaractor | parasitic device formed at the ends of SVaricap     |
+| pvaractor   | parasitic device formed at the ends of SVaricap     |
 | fillfet     | device formed at the junction of fill diff and poly |
 
 ## Fill pattern generation

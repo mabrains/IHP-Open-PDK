@@ -319,11 +319,16 @@ proc sg13g2::via_draw {parameters} {
 	if {$twidth > $bwidth} {set lmetalwidth $twidth} {set lmetalwidth $bwidth}
 	if {$theight > $bheight} {set lmetalheight $theight} {set lmetalheight $bheight}
 	
+	# Ensure that minimum metal width rule is satisfied in both directions
+	set minmetalwidth [lindex $metalwidthrule $i]
+	if {$lmetalwidth < $minmetalwidth} {set lmetalwidth $minmetalwidth}
+	if {$lmetalheight < $minmetalwidth} {set lmetalheight $minmetalwidth}
+
 	set metalwidth [lreplace $metalwidth $i $i $lmetalwidth]
 	set metalheight [lreplace $metalheight $i $i $lmetalheight]
     }
 
-    puts stdout "Diagnostic 2:  metalwidth = $metalwidth   metalheight = $metalheight" 
+    # puts stdout "Diagnostic 1:  metalwidth = $metalwidth   metalheight = $metalheight" 
 
     # For each internal metal, make sure that minimum metal area
     # rule is satisfied.  It is assumed that the top and bottom layers
@@ -347,7 +352,7 @@ proc sg13g2::via_draw {parameters} {
 	}
     }
 
-    puts stdout "Diagnostic 3:  metalwidth = $metalwidth   metalheight = $metalheight" 
+    # puts stdout "Diagnostic 2:  metalwidth = $metalwidth   metalheight = $metalheight" 
 
     # For each metal layer, paint the metal and contact
     snap internal

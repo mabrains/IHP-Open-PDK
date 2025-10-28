@@ -71,7 +71,9 @@ drc
  # block should be merged automatically during GDS generation.
  spacing allnwell allnwell 620 touching_ok "N-well spacing < %d (NW.b)"
 
- surround *pdiff,*pdiode,pfet allnwell 310 absence_illegal \
+ # Use edge4way rule to exclude butting tap in SVaricap
+ edge4way (*pdiff,*pdiode,pfet)/a ~(*pdiff,*pdiode,pfet,pvar)/a 310 \
+	allnwell ~(*pdiff,*pdiode,pfet)/a 310 \
 	"N-well overlap of P-Diffusion < %d (NW.c)"
  surround *hvpdiff,hvpfet,hvpfetesd allnwell 620 absence_illegal \
 	"N-well overlap of HV P-Diffusion < %d (NW.c1)"
@@ -81,8 +83,9 @@ drc
 	"HV N-Diffusion spacing to N-well < %d (NW.d1)"
  surround *nsd,*ntap allnwell 240 absence_illegal \
 	"N-well overlap of N-tap < %d (NW.e)"
- spacing *psd,*ptap allnwell 240 touching_illegal \
-	"P-tap spacing to N-well < %d (NW.f)"
+ # Use an edge4way rule to exclude butting tap in SVaricap
+ edge4way (*psd,*ptap)/a ~(*psd,*ptap,pvar)/a 240 ~(allnwell)/w \
+	~(*psd,*ptap,pvar)/a 240 "P-tap spacing to N-well < %d (NW.f)"
  spacing *hvpsd,*hvptap allnwell 620 touching_illegal \
 	"HV P-tap spacing to N-well < %d (NW.f1)"
  surround *schottky allnwell 620 absence_illegal \
@@ -92,7 +95,7 @@ drc
  # in which nwell stops at the hvndiffres edge.
  # surround *hvnsd,*hvntap allnwell 0 absence_illegal \
  #	"N-well overlap of HV N-tap < %d (NW.e1)"
- edge4way *hvnsd,*hvntap ~(*hvnsd,*hvntap,hvndiffres)/a 620 allnwell 0 0 \
+ edge4way *hvnsd,*hvntap ~(*hvnsd,*hvntap,hvndiffres,var)/a 620 allnwell 0 0 \
 	"N-well overlap of HV N-tap < %d (NW.e1)"
 
 #-----------------------------
@@ -172,7 +175,7 @@ drc
  variants *
 
  # pSD spacing
- edge4way (*nsd,*ntap)/a ~(*pdiff,*nsd,*ntap)/a 330 ~(pfet)/a ~(*pdiff)/a 330 \
+ edge4way (*nsd,*ntap)/a ~(*pdiff,*nsd,*ntap,var)/a 330 ~(pfet)/a ~(*pdiff)/a 330 \
 	manhattan_dist "pFET spacing to tap < %d (pSD.i + pSD.d1)"
  spacing pfet *nsd,*ntap 300 manhattan_dist "pFET spacing to tap < %d (pSD.i)"
  edge4way hvpfet ~(*hvpdiff,hvpfet)/a 430 ~(*hvnsd,*hvntap)/a (*hvpdiff)/a 430 \
@@ -217,7 +220,7 @@ drc
  spacing allpolynonfet alldiff 70 corner_ok allfets \
 	"Poly spacing to Diffusion < %d (Gat.d)"
 
- rect_only allnfets,allpfets,hvpvar "No bends in transistors (Gat.f)"
+ rect_only allnfets,allpfets,pvar "No bends in transistors (Gat.f)"
 
  overhang *poly allfetsstd 180 "Poly overhang of transistor < %d (Gat.c)"
 
@@ -286,7 +289,8 @@ drc
 	"Diffusion contact spacing < %d (Cnt.b)"
  spacing pc pc 180 touching_ok "Poly1 contact spacing < %d (Cnt.b)"
 
- spacing pc alldiff 140 touching_illegal \
+ # Use edge4way rule to exclude poly contact on SVaricap
+ edge4way (alldiffnonvar)/a ~(alldiff)/a 140 ~(pc)/a ~(alldiff)/a 140 \
 	"Poly contact spacing to diffusion < %d (Cnt.e)"
 
  spacing (ndc,nsc,pdc,psc,ndic,pdic)/a *poly,allfets 110 touching_illegal \
@@ -741,7 +745,7 @@ variants *
  edge4way hvndiff hvnfet 450 hvnfet 0 0 \
 	"HV NMOS minimum length < %d (Gat.a3)"
 
- extend *hvvaractor hvnsd 300 exclusive \
+ extend *varactor hvnsd 300 exclusive \
 	"HV Varactor minimum length < %d (Gat.a3 exception)"
 
  # Minimum length inferred from primitive device layout.  Length is 0.36um

@@ -202,14 +202,14 @@ proc sg13g2::addtechmenu {framename} {
 	    "sg13g2::hvsubconn_draw" pdk1
    magic::add_toolkit_command $layoutframe "substrate guard ring (5.0V)" \
 	    "sg13g2::hvsubconn_guard_draw" pdk1
-   magic::add_toolkit_command $layoutframe "deep n-well region (1.8V)" \
-	    "sg13g2::deep_nwell_draw" pdk1
-   magic::add_toolkit_command $layoutframe "deep n-well region (5.0V)" \
-	    "sg13g2::hvdeep_nwell_draw" pdk1
    magic::add_toolkit_command $layoutframe "n-well region with guard ring (1.8V)" \
 	    "sg13g2::nwell_draw" pdk1
    magic::add_toolkit_command $layoutframe "n-well region with guard ring (5.0V)" \
 	    "sg13g2::hvnwell_draw" pdk1
+   magic::add_toolkit_command $layoutframe "deep n-well region (1.8V)" \
+	    "sg13g2::deep_nwell_draw" pdk1
+   magic::add_toolkit_command $layoutframe "deep n-well region (5.0V)" \
+	    "sg13g2::hvdeep_nwell_draw" pdk1
    # magic::add_toolkit_command $layoutframe "via1" \
    #	    "sg13g2::via1_draw" pdk1
    # magic::add_toolkit_command $layoutframe "via2" \

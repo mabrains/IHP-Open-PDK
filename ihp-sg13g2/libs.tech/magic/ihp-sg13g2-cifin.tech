@@ -116,7 +116,24 @@ style  sg13g2 variants ()
  shrink 420
  labels SUBTXT text
 
+ # MOS Varactor area---Needs to be identified
+ # so that THKOX can be ignored in the area,
+ # and diffusion will be made "nsd" and not
+ # "hvnsd".
+
+ templayer vararea POLY
+ and DIFF
+ and-not NSDBLOCK
+ and-not PSD
+ and NWELL,nwelcheck
+ and THKOX,hvcheck
+ grow 480
+ and DIFF
+ grow 480
+ and DIFF
+
  layer dnwell DNWELL
+ and-not vararea
  labels DNWELL
 
  layer digisub DIGITALID
@@ -401,6 +418,7 @@ style  sg13g2 variants ()
  and PSD
  and NWELL,nwelcheck
  and THKOX,hvcheck
+ and-not vararea
 
  layer hvpfet hvpfetarea
  and-not ESDID
@@ -421,12 +439,14 @@ style  sg13g2 variants ()
  and-not NSDBLOCK
  and NWELL,nwelcheck
  and-not POLY
- and-not PSD
  and-not THKOX,hvcheck
+ or vararea
+ and-not PSD
  copyup nsubcheck
 
  templayer ntaparea nsdarea
  and DNWELL
+ and-not vararea
  and-not DIGITALID
 
  layer ntap ntaparea
@@ -459,27 +479,26 @@ style  sg13g2 variants ()
  and-not ptaparea
  labels DIFF
 
+ layer psd DIFF
+ and PSD
+ and-not NWELL,nwelcheck
+ and-not POLY
+ and vararea
+
  templayer hvnfetarea DIFF
  and POLY
  and-not PSD
  and-not NSDBLOCK
+ and-not NWELL,nwelcheck
  and THKOX,hvcheck
  grow 350
 
- layer hvnfetesd DIFF
- and POLY
- and-not PSD
- and-not NSDBLOCK
- and THKOX,hvcheck
- and ESDID
+ layer hvnfet hvnfetarea
+ and-not ESDID
  labels DIFF
 
- layer hvnfet DIFF
- and POLY
- and-not PSD
- and-not NSDBLOCK
- and THKOX,hvcheck
- and-not ESDID
+ layer hvnfetesd hvnfetarea
+ and ESDID
  labels DIFF
 
  templayer hvnsdarea DIFF
@@ -488,6 +507,7 @@ style  sg13g2 variants ()
  and NWELL,nwelcheck
  and-not POLY
  and-not PSD
+ and-not vararea
  and THKOX,hvcheck
  copyup hvnsubcheck
 
@@ -511,6 +531,7 @@ style  sg13g2 variants ()
  and-not NWELL,nwelcheck
  and-not POLY
  and THKOX,hvcheck
+ and-not vararea
  copyup hvpsubcheck
 
  templayer hvptaparea hvpsdarea
@@ -587,6 +608,7 @@ style  sg13g2 variants ()
  and MET1
  or barecont
  and DIFF
+ and-not POLY
  and-not NSDBLOCK
  and-not npnarea,hvnpnarea
  and NWELL,nwelcheck
@@ -604,6 +626,16 @@ style  sg13g2 variants ()
  grow 85
  or nscbase
  and-not ntapcbase
+ labels CONT
+
+ layer nsc CONT
+ or barecont
+ and MET1
+ or barecont
+ and vararea
+ and-not POLY
+ and-not NSDBLOCK
+ and NWELL,nwelcheck
  labels CONT
 
  layer ntapc ntapcbase
@@ -763,6 +795,7 @@ style  sg13g2 variants ()
  and DIFF
  and-not NSDBLOCK
  and-not SBLK
+ and-not vararea
  and NWELL,nwelcheck
  and THKOX,hvcheck
 
@@ -1272,27 +1305,20 @@ style  sg13g2 variants ()
  labels FILLOBSM7
 
  # MOS Varactor
- layer hvvar POLY
+ layer var vararea
+ and POLY
  and DIFF
- and-not NSDBLOCK
- and-not PSD
- and-not CONT
- and NWELL,nwelcheck
- and THKOX,hvcheck
  labels POLY
 
  # MOS Varactor contact
- layer hvvarc CONT
+ layer varc vararea
+ and CONT
  and POLY
  and DIFF
- and-not NSDBLOCK
- and-not PSD
- and NWELL,nwelcheck
- and THKOX,hvcheck
  labels CONT
 
  # parasitic p-type varactor
- layer hvpvar POLY
+ layer pvar POLY
  and DIFF
  and PSD
  and-not NWELL,nwelcheck

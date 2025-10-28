@@ -547,7 +547,7 @@ variants (),(hrhc),(lrhc),(hrlc),(lrlc)
  # are drawn directly into a layout and not through a parameterized cell,
  # the underlying Verilog-A component type will be extracted, possibly
  # resulting in a less-accurate simulation.
- device veriloga sg13_hv_svaricap *hvvaractor *hvnsd w=w l=l
+ device veriloga sg13_hv_svaricap *varactor *nsd w=w l=l
 
  # Diodes
  device csubcircuit dpantenna *pdiode nwell w=w l=l

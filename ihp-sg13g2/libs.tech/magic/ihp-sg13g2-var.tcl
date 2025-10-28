@@ -115,7 +115,7 @@ proc sg13g2::var_device {parameters} {
     box grow w ${hdevlen}um
     box grow n ${hdevwid}um
     box grow s ${hdevwid}um
-    paint hvnsd
+    paint nsd
     set cext [sg13g2::getbox]
 
     box grow c 0.24um
@@ -158,7 +158,8 @@ proc sg13g2::var_device {parameters} {
     # Bottom cut-out
     pushbox
     box grow e ${fdist}um
-    box grow w ${hdevlen}um
+    box grow w ${var_spacing}um
+    box grow w ${l}um
     box move s ${hdevwid}um
     box move n 0.15um
     box height 0.25um
@@ -175,15 +176,11 @@ proc sg13g2::var_device {parameters} {
     
 	pushbox
 	box move n ${hdevwid}um
-	box grow n 0.1um
-	box grow s 0.15um
-	paint hvvar
-	box height 0.14um
-	box move n 0.25um
-	paint hvpmos
-	box move n 0.14um
+	box grow n 0.24um
+	paint var
+	box move n 0.24um
 	box height 0.52um
-	paint hvpsd
+	paint psd
 	box grow c 0.13um
 	box grow s -0.13um
 	paint pwell
@@ -193,15 +190,12 @@ proc sg13g2::var_device {parameters} {
 
 	pushbox
 	box move s ${hdevwid}um
-	box move s 0.1um
-	box height 0.1um
-	paint hvvar
-	box move s 0.14um
-	box height 0.14um
-	paint hvpfet
+	box move s 0.24um
+	box height 0.24um
+	paint var
 	box move s 0.52um
 	box height 0.52um
-	paint hvpsd
+	paint psd
 	box grow c 0.13um
 	box grow n -0.13um
 	paint pwell
@@ -253,7 +247,7 @@ proc sg13g2::var_device {parameters} {
     paint m1
     box grow n -0.13um
     box grow c -0.05um
-    paint hvvarc
+    paint varc
 
     popbox
     if {$doports && ($term_g2 != "")} {
@@ -309,7 +303,7 @@ proc sg13g2::var_device {parameters} {
     paint m1
     box grow s -0.13um
     box grow c -0.05um
-    paint hvvarc
+    paint varc
 
     popbox
     if {$doports && ($term_g1 != "")} {
@@ -384,7 +378,7 @@ proc sg13g2::var_draw {parameters} {
     box grow s ${hcorey}um
     box width 0.16um
     box move w 0.16um
-    paint hvnsd
+    paint nsd
     box grow c 0.24um
     paint nwell
     popbox
@@ -399,10 +393,10 @@ proc sg13g2::var_draw {parameters} {
     paint m1
     box grow n -0.05um
     box grow s -0.05um
-    paint hvnsc
+    paint nsc
 
     if {$doports} {
-        label W c hvnsc
+        label W c nsc
 	select area label
 	port make
     }
