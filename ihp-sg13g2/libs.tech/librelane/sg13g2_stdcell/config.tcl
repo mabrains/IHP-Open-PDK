@@ -72,7 +72,7 @@ set ::env(DPL_CELL_PADDING) {0}
 set ::env(CELL_PAD_EXCLUDE) "sg13g2_fill_* sg13g2_decap_*"
 
 # PDN
-set ::env(FP_PDN_RAIL_WIDTH) 0.44
+set ::env(PDN_RAIL_WIDTH) 0.44
 
 # CTS
 set ::env(CTS_ROOT_BUFFER) sg13g2_buf_16

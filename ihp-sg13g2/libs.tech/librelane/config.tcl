@@ -51,8 +51,26 @@ set ::env(MAGIC_TECH) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/magic/ihp-sg13g2.t
 set ::env(KLAYOUT_TECH) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/sg13g2.lyt"
 set ::env(KLAYOUT_PROPERTIES) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/sg13g2.lyp"
 set ::env(KLAYOUT_DEF_LAYER_MAP) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/sg13g2.map"
-set ::env(KLAYOUT_DRC_RUNSET) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/drc/sg13g2_maximal.lydrc"
-set ::env(KLAYOUT_DRC_OPTIONS) [dict create densityRules 0 ]
+
+set ::env(KLAYOUT_DRC_RUNSET) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/drc/ihp-sg13g2.drc"
+set ::env(KLAYOUT_DRC_OPTIONS) [dict create]
+dict set ::env(KLAYOUT_DRC_OPTIONS) feol true
+dict set ::env(KLAYOUT_DRC_OPTIONS) beol true
+dict set ::env(KLAYOUT_DRC_OPTIONS) pin true
+dict set ::env(KLAYOUT_DRC_OPTIONS) forbidden true
+dict set ::env(KLAYOUT_DRC_OPTIONS) run_mode deep
+dict set ::env(KLAYOUT_DRC_OPTIONS) drc_json_default "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/drc/rule_decks/sg13g2_tech_default.json"
+
+set ::env(KLAYOUT_DENSITY_RUNSET) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/drc/rule_decks/density.drc"
+set ::env(KLAYOUT_DENSITY_OPTIONS) [dict create]
+dict set ::env(KLAYOUT_DENSITY_OPTIONS) drc_json_default "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/drc/rule_decks/sg13g2_tech_default.json"
+
+set ::env(KLAYOUT_ANTENNA_RUNSET) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/drc/rule_decks/antenna.drc"
+set ::env(KLAYOUT_ANTENNA_OPTIONS) [dict create]
+dict set ::env(KLAYOUT_ANTENNA_OPTIONS) drc_json_default "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/drc/rule_decks/sg13g2_tech_default.json"
+
+set ::env(KLAYOUT_FILLER_SCRIPT) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/scripts/filler.py"
+
 set ::env(KLAYOUT_LVS_SCRIPT) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/lvs/sg13g2.lvs"
 set ::env(KLAYOUT_LVS_OPTIONS) [dict create run_mode deep ]
 
@@ -80,30 +98,30 @@ set ::env(RCX_RULES) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/librelane/IHP_rcx_p
 #set ::env(RCX_RULES_MAX) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/librelane/rules.openrcx.$::env(PDK).max.spef_extractor"
 
 # Extra PDN configs
-set ::env(FP_PDN_RAIL_LAYER) Metal1
-set ::env(FP_PDN_RAIL_OFFSET) 0
+set ::env(PDN_RAIL_LAYER) Metal1
+set ::env(PDN_RAIL_OFFSET) 0
 
-set ::env(FP_PDN_VERTICAL_LAYER) TopMetal1
-set ::env(FP_PDN_HORIZONTAL_LAYER) TopMetal2
+set ::env(PDN_VERTICAL_LAYER) TopMetal1
+set ::env(PDN_HORIZONTAL_LAYER) TopMetal2
 
-set ::env(FP_PDN_VWIDTH) 2.2
-set ::env(FP_PDN_VSPACING) 4.0
-set ::env(FP_PDN_VPITCH) 75.6
-set ::env(FP_PDN_VOFFSET) 13.6
+set ::env(PDN_VWIDTH) 2.2
+set ::env(PDN_VSPACING) 4.0
+set ::env(PDN_VPITCH) 75.6
+set ::env(PDN_VOFFSET) 13.6
 
-set ::env(FP_PDN_HWIDTH) 2.2
-set ::env(FP_PDN_HSPACING) 4.0
-set ::env(FP_PDN_HPITCH) 75.6
-set ::env(FP_PDN_HOFFSET) 13.6
+set ::env(PDN_HWIDTH) 2.2
+set ::env(PDN_HSPACING) 4.0
+set ::env(PDN_HPITCH) 75.6
+set ::env(PDN_HOFFSET) 13.6
 
 
 # Core Ring PDN defaults
-set ::env(FP_PDN_CORE_RING_VWIDTH) 5.0
-set ::env(FP_PDN_CORE_RING_HWIDTH) 5.0
-set ::env(FP_PDN_CORE_RING_VSPACING) 2.0
-set ::env(FP_PDN_CORE_RING_HSPACING) 2.0
-set ::env(FP_PDN_CORE_RING_VOFFSET) 4.5
-set ::env(FP_PDN_CORE_RING_HOFFSET) 4.5
+set ::env(PDN_CORE_RING_VWIDTH) 5.0
+set ::env(PDN_CORE_RING_HWIDTH) 5.0
+set ::env(PDN_CORE_RING_VSPACING) 2.0
+set ::env(PDN_CORE_RING_HSPACING) 2.0
+set ::env(PDN_CORE_RING_VOFFSET) 4.5
+set ::env(PDN_CORE_RING_HOFFSET) 4.5
 
 # PDN Macro blockages list
 set ::env(MACRO_BLOCKAGES_LAYER) "Metal1 Metal2 Metal3 Metal4 Metal5 TopMetal1"
@@ -150,10 +168,12 @@ dict set ::env(VIAS_R) "*" Via4 res 2.0E-3
 dict set ::env(VIAS_R) "*" TopVia1 res 0.4E-3
 dict set ::env(VIAS_R) "*" TopVia2 res 0.22E-3
 
-
+# Don't set DATA_WIRE_RC_LAYER, CLOCK_WIRE_RC_LAYER
+# Have been renamed to SIGNAL_WIRE_RC_LAYERS, CLOCK_WIRE_RC_LAYERS
 # If unset, RT_MIN_LAYER and RT_MAX_LAYER are used for the calculation
-set ::env(SIGNAL_WIRE_RC_LAYERS) "Metal2 Metal3 Metal4 Metal5"
-set ::env(CLOCK_WIRE_RC_LAYER) "Metal2 Metal3 Metal4 Metal5"
+
+#set ::env(DATA_WIRE_RC_LAYER) "Metal2"
+#set ::env(CLOCK_WIRE_RC_LAYER) "Metal5"
 
 # I/O Layer info
 set ::env(FP_IO_HLAYER) "Metal3"
