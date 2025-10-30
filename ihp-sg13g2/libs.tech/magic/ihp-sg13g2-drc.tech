@@ -243,8 +243,8 @@ drc
  # To do:  add spacing requirements to devices with P+, N+-block, and SBLK
  spacing polyfill alldiff,*poly 1100 touching_illegal \
 	"Poly fill spacing to Poly and Diffusion < %d (GFil.d)"
- # spacing polyfill nwell 1100 surround_ok \
- #	"Poly fill spacing to Nwell < %d (GFil.e)"
+ spacing polyfill nwell 1100 surround_ok \
+ 	"Poly fill spacing to Nwell < %d (GFil.e)"
  spacing polyfill dnwell 1100 surround_ok \
 	"Poly fill spacing to Deep nwell < %d (GFil.e)"
  surround polyfill nwell 1100 absence_ok \
