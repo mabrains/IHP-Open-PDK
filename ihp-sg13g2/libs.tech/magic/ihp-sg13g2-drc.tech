@@ -237,7 +237,7 @@ drc
  # NOTE:  Need to implement Gat.b1 as cifspacing rule
 
  width polyfill 700 "Poly fill width < %d (GFil.b)"
- maxwidth polyfill 5000 both " (GFil.a)"
+ maxwidth polyfill 5000 both " Poly fill maximum width > %d (GFil.a)"
  spacing polyfill polyfill 800 touching_ok \
 	"Poly fill spacing < %d (GFil.c)"
  # To do:  add spacing requirements to devices with P+, N+-block, and SBLK
@@ -738,7 +738,8 @@ variants *
  variants (full)
  # This rule excludes pads;  may need to include inductors?  Would any
  # inductor wire exceed 30um width?
- maxwidth *m7 30000 bend_ok "Metal7 maximum width without slots < %d (Slt.c)"
+ maxwidth *m7 30000 bend_ok glass,pillar,solder \
+	"Metal7 maximum width without slots (except pads) < %d (Slt.c)"
  cifwidth seal_metal7 3500 "EdgeSeal-TopMetal2 width < 3.5um (Seal.a)"
  variants *
 
