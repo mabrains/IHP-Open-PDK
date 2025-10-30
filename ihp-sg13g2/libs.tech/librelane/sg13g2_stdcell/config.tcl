@@ -64,7 +64,7 @@ set ::env(FILL_CELLS) "sg13g2_fill_1 sg13g2_fill_2"
 set ::env(DECAP_CELLS) "sg13g2_decap_*"
 
 # Diode insertion
-set ::env(DIODE_CELL) "sg13g2_antennanp"
+set ::env(DIODE_CELL) "sg13g2_antennanp/A"
 
 set ::env(GPL_CELL_PADDING) {0}
 set ::env(DPL_CELL_PADDING) {0}
