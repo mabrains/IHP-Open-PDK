@@ -258,7 +258,6 @@ these.
 | device      | description                                         |
 |-------------|-----------------------------------------------------|
 | pvaractor   | parasitic device formed at the ends of SVaricap     |
-| fillfet     | device formed at the junction of fill diff and poly |
 
 ## Fill pattern generation
 

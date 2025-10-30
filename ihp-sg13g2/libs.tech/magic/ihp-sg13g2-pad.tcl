@@ -79,17 +79,17 @@ proc sg13g2::bondpad_draw {parameters} {
     set mheight [- $height 4.0]		;# metal (< 7) centerline
 
     set metal_edge [sg13g2::create_polygon $npoints $width $height]
-    set pad_edge [sg13g2::create_polygon $npoints $pwidth $pheight]
+    set glass_edge [sg13g2::create_polygon $npoints $pwidth $pheight]
     set metal_center [sg13g2::create_wire $npoints $mwidth $mheight]
 
     # Diagnostic
     # puts stdout "metal_edge = $metal_edge"
-    # puts stdout "pad_edge = $pad_edge"
+    # puts stdout "glass_edge = $glass_edge"
     # puts stdout "metal_center = $metal_center"
 
     # Create polygons
     polygon metal7 {*}$metal_edge
-    polygon pad {*}$pad_edge
+    polygon glass {*}$glass_edge
 
     # Create lower metals as wires 4um wide, matching the outer
     # edge of the pad metal.

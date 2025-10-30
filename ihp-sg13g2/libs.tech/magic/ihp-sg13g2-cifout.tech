@@ -161,8 +161,8 @@ style gdsii
 # DIFF (Fill)
 #----------------------------------------------------------------
 
- layer DIFFFILL	difffill,fillfet
-	labels	difffill,fillfet
+ layer DIFFFILL	difffill
+	labels	difffill
 	calma	1 22
 
 # Identify a varactor area, which generates its own thick oxide mask
@@ -284,12 +284,12 @@ style gdsii
  # is coincident with PWell:block.  These do not interact with the layers
  # above, since they are inside fill shapes, so they can be generated
  # independently.  This satisfies rule (AFil.j)
- layer NSDBLOCK difffill,fillfet
+ layer NSDBLOCK difffill
 	and pblock
 	grow 250
 	calma 7 21
 
- layer SBLK difffill,fillfet
+ layer SBLK difffill
 	and pblock
 	grow 250
 	calma 28 0
@@ -355,8 +355,8 @@ style gdsii
 	labels  allpolynonres port
 	calma	5 2
 
- layer POLYFILL	polyfill,fillfet
-	labels 	polyfill,fillfet
+ layer POLYFILL	polyfill
+	labels 	polyfill
 	calma	5 22
 
 #----------------------------------------------------------------
@@ -445,11 +445,16 @@ style gdsii
 # CONT
 #----------------------------------------------------------------
 # For purposes of differentiating square contact vias and bars,
-# identify resistor terminals.
+# identify resistor terminals, and also use a CONTBAR mask hint
+# as a way to identify bar contacts.
 
  templayer resterm
 	bloat-all nres,pres,xres *poly
 	and-not nres,pres,xres
+
+ templayer contbar
+	mask-hints CONTBAR
+	and allcont
 
 # NOTE:  Contact arrays defined at 200 spacing for large array
 # rule (5x5), otherwise spacing is 180.
@@ -464,6 +469,7 @@ style gdsii
 	and-not contlarge
 	and-not resterm
 	and-not sealring
+	and-not contbar
 	squares-grid 0 160 180
 	calma 6 0
 
@@ -471,6 +477,7 @@ style gdsii
 	and contlarge
 	and-not resterm
 	and-not sealring
+	and-not contbar
  	squares-grid 0 160 200
  	calma	6 0
 
@@ -480,7 +487,9 @@ style gdsii
 
  # Base contacts are drawn as-is, either bar or square, as
  # are schottky diode contacts, and contact in the seal ring.
+
  layer CONT pbc,sdic
+	or contbar
 	calma	6 0
 
  layer CONT pc
@@ -868,13 +877,13 @@ style gdsii
 # Bond pad ID
 # (note:  this is made coincident with the passivation cut)
 #----------------------------------------------------------------
- layer PADID	pad
+ layer PADID	glass
 	calma	41 0
 
 #----------------------------------------------------------------
 # GLASS (i.e., passivation cut)
 #----------------------------------------------------------------
- layer GLASS 	seal,pad
+ layer GLASS 	seal,glass
  	calma 	9 0
 
 #----------------------------------------------------------------
@@ -1008,7 +1017,7 @@ style drc
  ## bloat-all nfet_in_pwell alldiffnonfet,isodiffres,hvisodiffres,hvndiffres
 
  # Find all ptap diffusion
- ## templayer ptap_in_pwell *psd,*hvpsd
+ ## templayer ptap_in_pwell *psd,*hvpsd,*ptap,*hvptap
  ## and active_in_pwell
 
  # Any ptap area that is not included in nfet_source_drain_in_pwell
@@ -1021,21 +1030,21 @@ style drc
  # non-tap diffusion.
 
  templayer ptap_reach
- bloat-all *psd,*hvpsd pwell,space/w 20000
+ bloat-all *psd,*hvpsd,*ptap,*hvptap pwell,space/w 20000
 
  templayer ptap_missing *ndiff,*hvndiff
  and-not dnwell
  and-not ptap_reach
 
  templayer ntap_reach
- bloat-all *nsd,*hvnsd nwell,pnp 20000
+ bloat-all *nsd,*hvnsd,*ntap,*hvntap nwell,pnp 20000
 
  templayer ntap_missing *pdiff,*hvpdiff
  and-not pwell_in_dnwell
  and-not ntap_reach
 
  templayer dptap_reach
- bloat-all *psd,*hvpsd pwell_in_dnwell 20000
+ bloat-all *psd,*hvpsd,*ptap,*hvptap pwell_in_dnwell 20000
 
  templayer dptap_missing *ndiff,*hvndiff
  and dnwell
@@ -1059,7 +1068,7 @@ style drc
  templayer drawn_thkox
 	mask-hints THKOX
 
- templayer allhvdiffnowell *hvndiff,*hvpsd
+ templayer allhvdiffnowell *hvndiff,*hvpsd,*hvptap
  and-not drawn_thkox
 
  templayer nwell_or_thkox nwell,drawn_thkox
@@ -1068,7 +1077,7 @@ style drc
  and-not hvnwell
 
  # Check for low-voltage diffusion in high-voltage well
- templayer lvdiff_in_hvnwell *pdiff,*pdiode,*nsd
+ templayer lvdiff_in_hvnwell *pdiff,*pdiode,*nsd,*ntap
  or pfet
  and hvnwell
 
@@ -1079,8 +1088,8 @@ style drc
  and-not nwell_with_tap
 
  templayer tap_with_m1
- bloat-all allpactivetap psd,hvpsd
- bloat-all allnactivetap nsd,hvnsd
+ bloat-all allpactivetap psd,hvpsd,ptap,hvptap
+ bloat-all allnactivetap nsd,hvnsd,ntap,hvntap
 
  templayer tap_missing_m1 allnactivetap,allpactivetap
  and-not tap_with_m1
@@ -1213,8 +1222,13 @@ style drc
  templayer resistors
 	bloat-all nres,pres,xres *poly
 
+ templayer contbar
+	mask-hints CONTBAR
+	and allcont
+
  templayer contbar_enclosure_error pc
 	and resistors
+	or contbar
 	grow 50
 	and-not *m1
 
@@ -1268,9 +1282,9 @@ style density
  options calma-permissive-labels
  gridlimit 5
 
- templayer diff_all alldiff,difffill,fillfet,sealcont
+ templayer diff_all alldiff,difffill,sealcont
 
- templayer poly_all allpoly,polyfill,fillfet
+ templayer poly_all allpoly,polyfill
 
  templayer m1_all allm1,m1fill,diffprobe,sealcont,sealv1
 
@@ -1494,7 +1508,7 @@ style patternfill variants (),(tiled)
 # Three passes in sizes 5000, 2000, and 1000
 #---------------------------------------------------
 
- templayer	obstruct_m1 trans,pad,seal
+ templayer	obstruct_m1 trans,glass,seal
 	grow	580
 	or	allm1,obsm1,m1fill,fillblock
         grow    420
@@ -1508,7 +1522,7 @@ style patternfill variants (),(tiled)
         shrink  2495
         grow    2495
 
- templayer      obstruct_m1_medium trans,pad,seal
+ templayer      obstruct_m1_medium trans,glass,seal
 	grow	580
 	or	allm1,obsm1,m1fill,fillblock
 	or	met1fill_coarse
@@ -1522,7 +1536,7 @@ style patternfill variants (),(tiled)
         shrink  995
         grow    995
 
- templayer      obstruct_m1_fine trans,pad,seal
+ templayer      obstruct_m1_fine trans,glass,seal
 	grow	580
 	or	allm1,obsm1,m1fill,fillblock
 	or	met1fill_coarse,met1fill_medium
@@ -1546,7 +1560,7 @@ style patternfill variants (),(tiled)
 # Three passes in sizes 5000, 2000, and 1000
 #---------------------------------------------------
 
- templayer	obstruct_m2 trans,pad,seal
+ templayer	obstruct_m2 trans,glass,seal
 	grow	580
 	or	allm2,obsm2,m2fill,fillblock
         grow    420
@@ -1561,7 +1575,7 @@ style patternfill variants (),(tiled)
         shrink  2495
         grow    2495
 
- templayer      obstruct_m2_medium trans,pad,seal
+ templayer      obstruct_m2_medium trans,glass,seal
 	grow	580
 	or	allm2,obsm2,m2fill,fillblock
 	or	met2fill_coarse
@@ -1575,7 +1589,7 @@ style patternfill variants (),(tiled)
         shrink  995
         grow    995
 
- templayer      obstruct_m2_fine trans,pad,seal
+ templayer      obstruct_m2_fine trans,glass,seal
 	grow	580
 	or	allm2,obsm2,m2fill,fillblock
 	or	met2fill_coarse,met2fill_medium
@@ -1599,7 +1613,7 @@ style patternfill variants (),(tiled)
 # Three passes in sizes 5000, 2000, and 1000
 #---------------------------------------------------
 
- templayer	obstruct_m3 trans,pad,seal
+ templayer	obstruct_m3 trans,glass,seal
 	grow	580
 	or	allm3,obsm3,m3fill,fillblock
         grow    420
@@ -1614,7 +1628,7 @@ style patternfill variants (),(tiled)
         shrink  2495
         grow    2495
 
- templayer      obstruct_m3_medium trans,pad,seal
+ templayer      obstruct_m3_medium trans,glass,seal
 	grow	580
 	or	allm3,obsm3,m3fill,fillblock
 	or	met3fill_coarse
@@ -1628,7 +1642,7 @@ style patternfill variants (),(tiled)
         shrink  995
         grow    995
 
- templayer      obstruct_m3_fine trans,pad,seal
+ templayer      obstruct_m3_fine trans,glass,seal
 	grow	580
 	or	allm3,obsm3,m3fill,fillblock
 	or	met3fill_coarse,met3fill_medium
@@ -1652,7 +1666,7 @@ style patternfill variants (),(tiled)
 # Three passes in sizes 5000, 2000, and 1000
 #---------------------------------------------------
 
- templayer	obstruct_m4 trans,pad,seal
+ templayer	obstruct_m4 trans,glass,seal
 	grow	580
 	or	allm4,obsm4,m4fill,fillblock
         grow    420
@@ -1667,7 +1681,7 @@ style patternfill variants (),(tiled)
         shrink  2495
         grow    2495
 
- templayer      obstruct_m4_medium trans,pad,seal
+ templayer      obstruct_m4_medium trans,glass,seal
 	grow	580
 	or	allm4,obsm4,m4fill,fillblock
 	or	met4fill_coarse
@@ -1681,7 +1695,7 @@ style patternfill variants (),(tiled)
         shrink  995
         grow    995
 
- templayer      obstruct_m4_fine trans,pad,seal
+ templayer      obstruct_m4_fine trans,glass,seal
 	grow	580
 	or	allm4,obsm4,m4fill,fillblock
 	or	met4fill_coarse,met4fill_medium
@@ -1705,7 +1719,7 @@ style patternfill variants (),(tiled)
 # Three passes in sizes 5000, 2000, and 1000
 #---------------------------------------------------
 
- templayer	obstruct_m5 trans,pad,seal
+ templayer	obstruct_m5 trans,glass,seal
 	grow	580
 	or	allm5,*mimcap,obsm5,m5fill,fillblock
         grow    420
@@ -1720,7 +1734,7 @@ style patternfill variants (),(tiled)
         shrink  2495
         grow    2495
 
- templayer      obstruct_m5_medium trans,pad,seal
+ templayer      obstruct_m5_medium trans,glass,seal
 	grow	580
 	or	allm5,*mimcap,obsm5,m5fill,fillblock
 	or	met5fill_coarse
@@ -1734,7 +1748,7 @@ style patternfill variants (),(tiled)
         shrink  995
         grow    995
 
- templayer      obstruct_m5_fine trans,pad,seal
+ templayer      obstruct_m5_fine trans,glass,seal
 	grow	580
 	or	allm5,*mimcap,obsm5,m5fill,fillblock
 	or	met5fill_coarse,met5fill_medium
@@ -1760,7 +1774,7 @@ style patternfill variants (),(tiled)
 # Also:  Prohibiting metal6 fill under pads.
 # Two passes in sizes 10000, 5000
 #---------------------------------------------------
- templayer	obstruct_m6 trans,pad,seal,solder,pillar
+ templayer	obstruct_m6 trans,glass,seal,solder,pillar
 	grow	1900
 	or	allm6,obsm6,m6fill,fillblock
         grow    3000
@@ -1773,7 +1787,7 @@ style patternfill variants (),(tiled)
         shrink  4995
         grow    4995
 
- templayer      obstruct_m6_medium trans,pad,seal,solder,pillar
+ templayer      obstruct_m6_medium trans,glass,seal,solder,pillar
 	grow	1900
 	or	allm6,obsm6,m6fill,fillblock
 	or	met6fill_coarse
@@ -1797,7 +1811,7 @@ style patternfill variants (),(tiled)
 # Space to TRANS: 4.9 (TM2Fil.d)
 # Two passes in sizes 10000, 5000
 #---------------------------------------------------
- templayer	obstruct_m7 trans,pad,seal,solder,pillar
+ templayer	obstruct_m7 trans,glass,seal,solder,pillar
 	grow	1900
 	or	allm7,obsm7,m7fill,fillblock
         grow    3000
@@ -1810,7 +1824,7 @@ style patternfill variants (),(tiled)
         shrink  4995
         grow    4995
 
- templayer      obstruct_m7_medium trans,pad,seal,solder,pillar
+ templayer      obstruct_m7_medium trans,glass,seal,solder,pillar
 	grow	1900
 	or	allm7,obsm7,m7fill,fillblock
 	or	met7fill_coarse

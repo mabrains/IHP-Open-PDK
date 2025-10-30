@@ -469,8 +469,9 @@ style  sg13g2 variants ()
  copyup psubcheck
 
  templayer ptaparea psdarea
- and SUBCUT
+ and SUBCUT,ptapcheck
  and-not DIGITALID
+ copyup ptapcheck
 
  layer ptap ptaparea
  labels DIFF
@@ -491,7 +492,6 @@ style  sg13g2 variants ()
  and-not NSDBLOCK
  and-not NWELL,nwelcheck
  and THKOX,hvcheck
- grow 350
 
  layer hvnfet hvnfetarea
  and-not ESDID
@@ -545,12 +545,15 @@ style  sg13g2 variants ()
  and-not hvptaparea
  labels DIFF
 
- # Copy psub areas up for contact checks
+ # Copy psub, hvpsub, and ptap areas up for contact checks
  templayer xpsubcheck psubcheck
  copyup psubcheck
 
  templayer hvxpsubcheck hvpsubcheck
  copyup hvpsubcheck
+
+ templayer xptapcheck ptapcheck
+ copyup ptapcheck
 
  layer poly POLY,POLYPIN
  and-not POLYRES
@@ -1066,7 +1069,6 @@ style  sg13g2 variants ()
  layer m7 MET7,MET7TXT,MET7PIN
  and-not MET7RES
  and-not MET7SLIT
- and-not GLASS
  labels MET7
  labels MET7PIN port
  labels MET7TXT text
@@ -1199,6 +1201,17 @@ style  sg13g2 variants ()
  or psccopy
  labels CONT
 
+ templayer ptapccopy CONT
+ and ptapcheck
+
+ layer ptapc ptapccopy
+ grow 85
+ shrink 85
+ shrink 85
+ grow 85
+ or ptapccopy
+ labels CONT
+
  templayer hvpsccopy CONT
  and hvpsubcheck
 
@@ -1221,6 +1234,7 @@ style  sg13g2 variants ()
  and-not DIODE
  and-not nsubcheck
  and-not psubcheck
+ and-not ptapcheck
  and-not hvnsubcheck
  and-not hvpsubcheck
  copyup barecont
@@ -1229,6 +1243,7 @@ style  sg13g2 variants ()
  and-not MET1
  and-not nsubcheck
  and-not psubcheck
+ and-not ptapcheck
  and-not hvnsubcheck
  and-not hvpsubcheck
  copyup barecont
@@ -1252,7 +1267,7 @@ style  sg13g2 variants ()
  and-not EDGESEAL
  labels SOLDERID
 
- layer pad PADID
+ layer glass PADID
  and MET7
  and GLASS
  and-not EDGESEAL
@@ -1322,7 +1337,6 @@ style  sg13g2 variants ()
  and DIFF
  and PSD
  and-not NWELL,nwelcheck
- and THKOX,hvcheck
  labels POLY
 
  calma NWELL 31 0

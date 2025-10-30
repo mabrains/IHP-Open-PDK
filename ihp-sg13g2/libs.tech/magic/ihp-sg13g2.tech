@@ -84,6 +84,7 @@ planes
   dwell,dw
   well,w
   active,a
+  poly,po
   metal1,m1
   metal2,m2
   metal3,m3
@@ -122,7 +123,6 @@ types
   active varactor,varact,var
   active varcontact,varc
   active pvaractor,pvaract,pvar
- -active fillfet
  -active sealcont,sealc
 
 # Diffusions
@@ -162,8 +162,8 @@ types
 # Poly
   active poly,p,polysilicon
   active polycont,pc,pcontact,polycut,polyc
- -active polyfill
- -active obspoly
+ -poly obspoly
+ -poly polyfill
 
 # Resistors
   active npolyres,nres,rsil
@@ -247,7 +247,7 @@ types
  -passiv pillar,cu
  -passiv solder,sbump
  -passiv seal
-  passiv pad
+  passiv glass
 
 # Miscellaneous
   comment fillblock
@@ -350,10 +350,10 @@ aliases
   allpoly	   allpolynonfet,allfets
   allpolynoncap	   *poly,allfets,allpolyres
 
-  allndiffcontlv   ndc,nsc,ndic
-  allpdiffcontlv   pdc,psc,pdic
-  allndiffconthv   hvndc,hvnsc
-  allpdiffconthv   hvpdc,hvpsc
+  allndiffcontlv   ndc,nsc,ndic,ntapc
+  allpdiffcontlv   pdc,psc,pdic,ptapc
+  allndiffconthv   hvndc,hvnsc,hvntapc
+  allpdiffconthv   hvpdc,hvpsc,hvptapc
   allndiffcont	   allndiffcontlv,allndiffconthv
   allpdiffcont	   allpdiffcontlv,allpdiffconthv
   alldiffcontlv	   allndiffcontlv,allpdiffcontlv
@@ -399,7 +399,6 @@ styles
   ptap      pdiff_in_pwell
   nfet      ntransistor    ntransistor_stripes
   pfet      ptransistor    ptransistor_stripes
-  fillfet   ntransistor
   ndc       ndiffusion     metal1  contact_X'es
   pdc       pdiffusion     metal1  contact_X'es
   nsc       ndiff_in_nwell metal1  contact_X'es
@@ -507,7 +506,7 @@ styles
   obsm7     metal7
   pillar    mems	   overglass
   solder    mems	   overglass
-  pad	    mems	   overglass
+  glass	    mems	   overglass
   seal	    overglass	   mems
 
   comment   comment
@@ -539,8 +538,6 @@ compose
 
   compose  hvnfet  poly  hvndiff
   compose  hvpfet  poly  hvpdiff
-
-  compose  fillfet polyfill difffill
 
   decompose hvnfetesd poly hvndiff
   decompose hvpfetesd poly hvpdiff
@@ -615,7 +612,7 @@ connect
   *m4,m4fill	*m4,m4fill
   *m5,m5fill	*m5,m5fill
   *m6,m6fill	*m6,m6fill
-  *m7,m7fill	*m7,m7fill
+  *m7,m7fill    *m7,m7fill
   *mimcap       *mimcap
    allnactivenonfet	allnactivenonfet
    # Resistor to isolated pwell tap

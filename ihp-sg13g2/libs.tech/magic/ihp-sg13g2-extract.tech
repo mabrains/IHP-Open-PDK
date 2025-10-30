@@ -33,15 +33,16 @@ extract
  planeorder dwell       0
  planeorder well        1
  planeorder active      2
- planeorder metal1      3
- planeorder metal2      4
- planeorder metal3      5
- planeorder metal4      6
- planeorder metal5      7
- planeorder metal6      8
- planeorder metal7      9
- planeorder passiv     10
- planeorder comment    11
+ planeorder poly	3
+ planeorder metal1      4
+ planeorder metal2      5
+ planeorder metal3      6
+ planeorder metal4      7
+ planeorder metal5      8
+ planeorder metal6      9
+ planeorder metal7     10
+ planeorder passiv     11
+ planeorder comment    12
 
  # Antenna check parameters
  # Note that checks w/diode diffusion are not modeled
