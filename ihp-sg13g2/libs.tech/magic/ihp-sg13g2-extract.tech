@@ -537,7 +537,7 @@ variants (),(hrhc),(lrhc),(hrlc),(lrlc)
  device msubcircuit npn13g2v npn hvnec *ndiff space/w error w1=we l1=le
 
  # Lateral PNP bipolar
- device msubcircuit pnpMPA pnp *pdiff pwell,space/w w1=we l1=le
+ device msubcircuit pnpMPA pnp *pdiff pwell,space/w a1=a p1=p
 
  # Capacitors
  device csubcircuit cap_cmim *mimcap *m5 w=w l=l
@@ -610,8 +610,8 @@ variants (lvs)
  # High voltage NPN bipolar
  device bjt npn13g2v npn hvnec *ndiff space/w error w1=we l1=le
 
- # Currently no way to identify a pnpMPA device.
- # device bjt pnpMPA pnp *pdiff pwell,space/w
+ # pnpMPA PNP bipolar
+ device bjt pnpMPA pnp *pdiff pwell,space/w a1=a p1=p
 
  # Capacitors
  device capacitor cap_cmim *mimcap *m5 c=c
