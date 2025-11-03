@@ -36,3 +36,5 @@ dict set ::env(PAD_BONDPAD_OFFSETS) "sg13g2_IOPad*" "5.0, -70.0"
 
 # Sealring offset
 set ::env(PAD_EDGE_SPACING) "140"
+
+set ::env(KLAYOUT_SEALRING_SCRIPT) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/scripts/sealring.py"
