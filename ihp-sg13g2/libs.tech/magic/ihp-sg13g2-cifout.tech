@@ -1,6 +1,6 @@
 ########################################################################
 #
-# Copyright 2024 IHP PDK Authors
+# Copyright 2025 IHP PDK Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,11 +53,11 @@ style gdsii
  layer DNWELL	pnp
 	shrink 260
 	or dnwell,npn
-	bloat-all *ntap,*hvntap nwell
+	bloat-all (*ntap,*hvntap)/a nwell
 	calma	32 0
 
  layer DNWELL
-	bloat-all *var *nsd
+	bloat-all (*var)/a (*nsd)/a
 	grow 240
 	and nwell
 	shrink 240
@@ -132,7 +132,7 @@ style gdsii
 #----------------------------------------------------------------
 
  templayer trans
-	bloat-all gec,nec,hvnec nemitter,hvnemitter,*ndiff,space/a 3430
+	bloat-all (gec,nec,hvnec)/a (nemitter,hvnemitter,*ndiff,space)/a 3430
 	shrink 200
 
  # Define the guard ring area around bipolar transistors
@@ -170,7 +170,7 @@ style gdsii
 
  templayer varactorarea pvar
 	grow 580
-	bloat-all *var nwell
+	bloat-all (*var)/a nwell
 	maxrect external
 
 # Identify a PNP area, which also generates its own PSD mask.
@@ -299,7 +299,7 @@ style gdsii
 #----------------------------------------------------------------
 
  layer EXTBLOCK
-	bloat-all pres,xres,nres *poly
+	bloat-all pres,xres,nres (*poly)/a
 	grow 180
 	# bloat-or pres,xres * 200 *poly 0
 	# Merge EXTBLOCK across resistors if needed
@@ -449,7 +449,7 @@ style gdsii
 # as a way to identify bar contacts.
 
  templayer resterm
-	bloat-all nres,pres,xres *poly
+	bloat-all nres,pres,xres (*poly)/a
 	and-not nres,pres,xres
 
  templayer contbar
@@ -1030,21 +1030,21 @@ style drc
  # non-tap diffusion.
 
  templayer ptap_reach
- bloat-all *psd,*hvpsd,*ptap,*hvptap pwell,space/w 20000
+ bloat-all (*psd,*hvpsd,*ptap,*hvptap)/a pwell,space/w 20000
 
  templayer ptap_missing *ndiff,*hvndiff
  and-not dnwell
  and-not ptap_reach
 
  templayer ntap_reach
- bloat-all *nsd,*hvnsd,*ntap,*hvntap nwell,pnp 20000
+ bloat-all (*nsd,*hvnsd,*ntap,*hvntap)/a nwell,pnp 20000
 
  templayer ntap_missing *pdiff,*hvpdiff
  and-not pwell_in_dnwell
  and-not ntap_reach
 
  templayer dptap_reach
- bloat-all *psd,*hvpsd,*ptap,*hvptap pwell_in_dnwell 20000
+ bloat-all (*psd,*hvpsd,*ptap,*hvptap)/a pwell_in_dnwell 20000
 
  templayer dptap_missing *ndiff,*hvndiff
  and dnwell
@@ -1082,14 +1082,14 @@ style drc
  and hvnwell
 
  templayer nwell_with_tap
- bloat-all nsc,hvnsc,ntapc,hvntapc nwell,pnp
+ bloat-all (nsc,hvnsc,ntapc,hvntapc)/a nwell,pnp
 
  templayer nwell_missing_tap nwell,pnp
  and-not nwell_with_tap
 
  templayer tap_with_m1
- bloat-all allpactivetap psd,hvpsd,ptap,hvptap
- bloat-all allnactivetap nsd,hvnsd,ntap,hvntap
+ bloat-all (allpactivetap)/a psd,hvpsd,ptap,hvptap
+ bloat-all (allnactivetap)/a nsd,hvnsd,ntap,hvntap
 
  templayer tap_missing_m1 allnactivetap,allpactivetap
  and-not tap_with_m1
@@ -1109,7 +1109,7 @@ style drc
  # Identify bipolar areas (same as BIPOLARID)
 
  templayer trans
-	bloat-all gec,nec,hvnec nemitter,hvnemitter,*ndiff,space/a 3430
+	bloat-all (gec,nec,hvnec)/a (nemitter,hvnemitter,*ndiff,space)/a 3430
 	shrink 200
 
  # Identify areas that have to be seprated by a specific
@@ -1127,7 +1127,7 @@ style drc
 	grow 10
 
  templayer npnactive npn
-	bloat-all npngrow *ndiff,nemit
+	bloat-all npngrow (*ndiff,nemit)/a
 
  # Nothing may exist on the active plane inside the npn area
  # other than the npn itself.
@@ -1147,7 +1147,7 @@ style drc
  # not suffice, because only unrelated metal6 should be
  # considered.
  templayer metal6_connects_mimcap
-	bloat-all mimcc/m6 *metal6
+	bloat-all mimcc/m6 (*metal6)/m6
 
  templayer metal6_spacing_to_mimcap metal6
 	and-not metal6_connects_mimcap
@@ -1156,31 +1156,31 @@ style drc
 
  # Identify butted p-tap areas
  templayer butted_tap
-	bloat-all ndiff *psd,*ptap
-	bloat-all hvndiff *hvpsd,*hvptap
-	bloat-all pdiff *nsd,*ntap
-	bloat-all hvpdiff *hvnsd,*hvntap
+	bloat-all ndiff (*psd,*ptap)/a
+	bloat-all hvndiff (*hvpsd,*hvptap)/a
+	bloat-all pdiff (*nsd,*ntap)/a
+	bloat-all hvpdiff (*hvnsd,*hvntap)/a
 	and-not ndiff,hvndiff,pdiff,hvpdiff
 
  templayer butted_diff
- 	bloat-all psd,ptap *ndiff
- 	bloat-all hvpsd,hvptap *hvndiff
- 	bloat-all nsd,ntap *pdiff
- 	bloat-all hvnsd,hvntap *hvpdiff
+ 	bloat-all psd,ptap (*ndiff)/a
+ 	bloat-all hvpsd,hvptap (*hvndiff)/a
+ 	bloat-all nsd,ntap (*pdiff)/a
+ 	bloat-all hvnsd,hvntap (*hvpdiff)/a
  	and-not psd,hvpsd,nsd,hvnsd,ptap,hvptap,ntap,hvntap
 
  # No uncontacted butted tap area should be more than 6um away from a contact.
  templayer tap_far_from_contact
-	bloat-all pdc,ndc,hvpdc,hvndc alldiff 6000
+	bloat-all (pdc,ndc,hvpdc,hvndc)/a (alldiff)/a 6000
 	and butted_tap,butted_diff
-	noninteracting psc,nsc,ptapc,ntapc,hvpsc,hvnsc,hvptapc,hvntapc,sealc
+	noninteracting (psc,nsc,ptapc,ntapc,hvpsc,hvnsc,hvptapc,hvntapc,sealc)/a
 
  templayer latchup_error butted_tap
 	and-not tap_far_from_contact
 
  templayer tap_contact_halo
-	bloat-all psc,nsc,ptapc,ntapc,hvpsc,hvnsc,hvptapc,hvntapc,sealc \
-		allnactivetap,allpactivetap 6000
+	bloat-all (psc,nsc,ptapc,ntapc,hvpsc,hvnsc,hvptapc,hvntapc,sealc)/a \
+		(allnactivetap,allpactivetap)/a 6000
 
  templayer tap_far_from_tap_contact psd,nsd,ptap,ntap,hvpsd,hvnsd,hvptap,hvntap
 	and-not tap_contact_halo
@@ -1205,7 +1205,7 @@ style drc
 	and-not butted_tap_okay
 
  templayer res_extblock
-	bloat-all pres,xres,nres *poly
+	bloat-all pres,xres,nres (*poly)/a
 	grow 180
 
  templayer res_to_psd_space res_extblock
@@ -1220,7 +1220,7 @@ style drc
  # detecting the resistor area.
 
  templayer resistors
-	bloat-all nres,pres,xres *poly
+	bloat-all nres,pres,xres (*poly)/a
 
  templayer contbar
 	mask-hints CONTBAR
@@ -1237,25 +1237,25 @@ style drc
  # cifdrc rules.
 
  templayer seal_active
-	bloat-all sealc psd
+	bloat-all (sealc)/a psd
 
  templayer seal_metal1
-	bloat-all sealv1 m1
+	bloat-all (sealv1)/m1 m1
 
  templayer seal_metal2
-	bloat-all sealv2 m2
+	bloat-all (sealv2)/m2 m2
 
  templayer seal_metal3
-	bloat-all sealv3 m3
+	bloat-all (sealv3)/m3 m3
 
  templayer seal_metal4
-	bloat-all sealv4 m4
+	bloat-all (sealv4)/m4 m4
 
  templayer seal_metal5
-	bloat-all sealv5 m5
+	bloat-all (sealv5)/m5 m5
 
  templayer seal_metal6
-	bloat-all sealv6 m6
+	bloat-all (sealv6)/m6 m6
 
  templayer seal_metal7 sealv6
 	grow 1300
@@ -1359,7 +1359,7 @@ style patternfill variants (),(tiled)
 
  # Generate area of TRANS for diffusion fill keep-out 
  templayer trans
-	bloat-all gec,nec,hvnec nemitter,hvnemitter,*ndiff,space/a 3430
+	bloat-all (gec,nec,hvnec)/a (nemitter,hvnemitter,*ndiff,space)/a 3430
 	shrink 200
 
  # Precompute diffusion and pSD for poly:fill keep-out areas,

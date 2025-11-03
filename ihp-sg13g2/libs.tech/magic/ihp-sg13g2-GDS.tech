@@ -1,6 +1,6 @@
 ########################################################################
 #
-# Copyright 2024 IHP PDK Authors
+# Copyright 2025 IHP PDK Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ tech
 end
 
 version
-    version 0.2.0
+    version 1.0.0
     description "IHP SG13G2: Vendor GDS layers and supplementary DRC"
     requires magic-8.3.124
 end
