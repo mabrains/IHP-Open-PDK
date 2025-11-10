@@ -62,3 +62,15 @@ jobs:
 
       - name: 🧪 Run KLayout DRC Regression
         run: make test-DRC-main
+
+      - name: ⛰️ Run KLayout top-level DRC Deck
+        run: |
+          klayout -b -r ihp-sg13g2/libs.tech/klayout/tech/drc/ihp-sg13g2.drc \
+            -rd run_mode=deep \
+            -rd thr=1 \
+            -rd no_feol=false \
+            -rd no_beol=false \
+            -rd no_offgrid=false \
+            -rd no_pin=false \
+            -rd no_forbidden=false \
+            -rd input=ihp-sg13g2/libs.tech/klayout/tech/drc/testing/testcases/unit/activ.gds
