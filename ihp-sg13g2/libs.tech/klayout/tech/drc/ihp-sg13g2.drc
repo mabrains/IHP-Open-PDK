@@ -23,6 +23,7 @@ require 'time'
 require 'logger'
 require 'json'
 require 'pathname'
+require 'etc'
 
 exec_start_time = Time.now
 
@@ -66,7 +67,7 @@ logger = MultiLogger.new(stdout_logger, file_logger)
 #----------------- FILE SETUP -------------------
 #================================================
 
-logger.info("Starting running IHP-SG13G2 Klayout DRC runset on #{$input}")
+logger.info("Starting running IHP-SG13G2 KLayout DRC runset on #{$input}")
 logger.info("Ruby Version for klayout: #{RUBY_VERSION}")
 
 if $input
@@ -80,12 +81,12 @@ end
 logger.info('Loading database to memory is complete.')
 
 if $report
-  logger.info("IHP-SG13G2 Klayout DRC runset output at: #{$report}")
+  logger.info("IHP-SG13G2 KLayout DRC runset output at: #{$report}")
   report('Main DRC Run Report at', $report)
 else
   layout_dir = Pathname.new(RBA::CellView.active.filename).parent.realpath
   report_path = layout_dir.join('sg13g2_drc_main.lyrdb').to_s
-  logger.info("IHP-SG13G2 Klayout DRC runset output at default location: #{report_path}")
+  logger.info("IHP-SG13G2 KLayout DRC runset output at default location: #{report_path}")
   report('Main DRC Run Report at', report_path)
 end
 
@@ -99,9 +100,8 @@ def bool_check?(obj)
   obj.to_s.downcase == 'true'
 end
 
-TABLE_NAME = $table_name || 'main'
-
-logger.info("table_name selected  #{TABLE_NAME}")
+TABLES = ($tables || 'main').split
+logger.info("tables selected: #{TABLES.join(' ')}")
 
 # Run mode setup
 def setup_run_mode(run_mode)
@@ -117,12 +117,13 @@ def setup_run_mode(run_mode)
 end
 
 # threads
-threads($thr.to_i)
-logger.info("Klayout will use #{$thr} thread(s) in tiled mode.")
+$threads = ($threads || Etc.nprocessors).to_i
+threads($threads)
+logger.info("KLayout will use #{$threads} thread(s) in tiled mode.")
 
 # Run mode
 setup_run_mode($run_mode)
-logger.info("#{$run_mode} mode is enabled for #{TABLE_NAME} table.")
+logger.info("#{$run_mode} mode is enabled.")
 
 # FEOL
 FEOL = !bool_check?($no_feol)
@@ -150,8 +151,8 @@ logger.info("PreCheck DRC enabled: #{PRECHECK_DRC}")
 
 # Connectivity rules
 conn_tables = %w[main nwell nbulay]
-CONNECTIVITY_RULES = conn_tables.include?(TABLE_NAME)
-logger.info("CONNECTIVITY_RULES enabled: #{CONNECTIVITY_RULES} for table #{TABLE_NAME}")
+CONNECTIVITY_RULES = TABLES.any?{|x| conn_tables.include?(x)}
+logger.info("CONNECTIVITY_RULES enabled: #{CONNECTIVITY_RULES}.")
 
 #================================================
 #------------- LAYERS DEFINITIONS ---------------
@@ -230,7 +231,7 @@ pwell = pwell_allowed.not(nwell_drw).not(digisub_gap)
 
 # nBulay
 nbulay_tables = %w[main nbulay nwell activfiller schottkydiode]
-if nbulay_tables.include?(TABLE_NAME)
+if TABLES.any?{|x| nbulay_tables.include?(x)}
   nbulay_gen_sized = nwell_drw.sized(-1.495.um).sized(0.495.um)
   nbuLay_gen = nbulay_gen_sized.not(nbulay_block.join(res_drw))
   nbuLay_gen_nbulay = nbuLay_gen.join(nbulay_drw)
@@ -238,48 +239,48 @@ end
 
 # n activ
 nact_pact_tables = %w[main pwellblock gatpoly cont latchup nwell nbulay]
-if nact_pact_tables.include?(TABLE_NAME)
+if TABLES.any?{|x| nact_pact_tables.include?(x)}
   logger.info('Starting n-Activ derivations')
   nactiv  = activ_drw.not(psd_drw.join(nsd_block))
 end
 
 # p activ
 pact_pact_tables = %w[main pwellblock gatpoly cont npnsubstratetie latchup  nwell nbulay]
-if pact_pact_tables.include?(TABLE_NAME)
+if TABLES.any?{|x| pact_pact_tables.include?(x)}
   logger.info('Starting p-Activ derivations')
   pactiv  = activ_drw.and(psd_drw)
 end
 
 # p tap
 ptap_tables = %w[main pwellblock npnsubstratetie latchup nwell nbulay]
-if ptap_tables.include?(TABLE_NAME)
+if TABLES.any?{|x| ptap_tables.include?(x)}
   logger.info('Starting ptap derivations')
   ptap = pactiv.and(pwell)
 end
 
 # n tap
 ntap_tables = %w[main nwell nbulay]
-if ntap_tables.include?(TABLE_NAME)
+if TABLES.any?{|x| ntap_tables.include?(x)}
   logger.info('Starting ntap derivations')
   ntap = nactiv.and(nwell_drw)
 end
 
 # activ FETs
 pact_fet_tables = %w[main gatpoly nwell nbulay]
-if pact_fet_tables.include?(TABLE_NAME)
+if TABLES.any?{|x| pact_fet_tables.include?(x)}
   logger.info('Starting pact FET derivations')
   pact_fet = pactiv.and(nwell_drw)
 end
 
 nact_fet_tables = %w[main pwellblock gatpoly latchup nwell nbulay]
-if nact_fet_tables.include?(TABLE_NAME)
+if TABLES.any?{|x| nact_fet_tables.include?(x)}
   logger.info('Starting nact FET derivations')
   nact_fet = nactiv.and(pwell)
 end
 
 # Gate FETs
 gate_tables = %w[main gatpoly nwell nbulay]
-if gate_tables.include?(TABLE_NAME)
+if TABLES.any?{|x| gate_tables.include?(x)}
   logger.info('Starting Gate derivations')
   res_mk = polyres_drw.join(res_drw)
   ngate = nact_fet.and(gatpoly_drw)
@@ -288,7 +289,7 @@ end
 
 # Cont derivations
 cont_tables = %w[main cont contbar schottkydiode]
-if cont_tables.include?(TABLE_NAME)
+if TABLES.any?{|x| cont_tables.include?(x)}
   logger.info('Starting cont/contbar general derivations')
   cont_nseal = cont_drw.not(edgeseal_drw)
   contbar = cont_nseal.non_squares
@@ -298,7 +299,7 @@ end
 
 # Pad derivations
 pad_tables = %w[main pad solderbump copperpillar]
-if pad_tables.include?(TABLE_NAME)
+if TABLES.any?{|x| pad_tables.include?(x)}
   logger.info('Starting pad general derivations')
   cu_pillarpad = passiv_pillar.and(dfpad_pillar).and(topmetal2_drw)
   sbumppad = dfpad_sbump.and(passiv_sbump).and(topmetal2_drw)
@@ -454,4 +455,4 @@ logger.info('Running all FORBIDDEN rules') if FORBIDDEN
 
 exec_end_time = Time.now
 run_time = exec_end_time - exec_start_time
-logger.info("KLayout DRC run for table '#{$table_name}' completed in #{run_time.round(2)} seconds")
+logger.info("KLayout DRC run for tables '#{TABLES.join(' ')}' completed in #{run_time.round(2)} seconds")

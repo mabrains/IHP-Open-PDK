@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #=========================================================================================
-if TABLE_NAME == 'nbulay' || FEOL
+if TABLES.include?('nbulay') || FEOL
   #================================================
   #------------------ 5.3 nBuLay ------------------
   #================================================

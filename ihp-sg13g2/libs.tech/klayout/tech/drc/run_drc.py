@@ -363,7 +363,7 @@ def generate_klayout_switches(arguments, layout_path: str) -> dict:
     switches = {}
 
     # Number of threads
-    switches["thr"] = arguments.density_thr
+    switches["threads"] = arguments.density_thr
 
     # Locate JSON rule file paths
     script_dir = Path(__file__).resolve().parent
@@ -507,7 +507,7 @@ def build_switches_string(sws: dict) -> str:
 
 def run_check(
     drc_file: str,
-    drc_table: str,
+    drc_tables: List[str],
     layout_path: str,
     run_dir: Path,
     sws: dict,
@@ -519,7 +519,7 @@ def run_check(
     ----------
     drc_file : str
         Full path to the DRC rule deck file to run.
-    drc_table : str
+    drc_tables : str
         Name of the DRC table (used in naming reports).
     layout_path : str
         Full path to the layout (GDS/OAS) file.
@@ -537,18 +537,18 @@ def run_check(
     topcell = sws["topcell"]
 
     logging.info(
-        f"Running IHP-SG13G2 {drc_table} checks on design {layout_path}, topcell: {topcell}"
+        f"Running IHP-SG13G2 {' '.join(drc_tables)} checks on design {layout_path}, topcell: {topcell}"
     )
 
-    report_path = run_dir / f"{layout_name}_{topcell}_{drc_table}.lyrdb"
-    log_path = run_dir / f"{layout_name}_{topcell}_{drc_table}.log"
+    report_path = run_dir / f"{layout_name}_{topcell}_{'_'.join(drc_tables)}.lyrdb"
+    log_path = run_dir / f"{layout_name}_{topcell}_{'_'.join(drc_tables)}.log"
     new_sws = sws.copy()
     new_sws.update(
         {"report": report_path, "log": log_path, "run_mode": sws["run_mode"]}
     )
 
     sws_str = build_switches_string(new_sws)
-    sws_str += f" -rd table_name={drc_table}"
+    sws_str += f" -rd tables=\"{' '.join(drc_tables)}\""
 
     run_cmd = f"klayout -b -r '{drc_file}' {sws_str}"
     check_call(run_cmd, shell=True)
@@ -609,7 +609,7 @@ def run_parallel_run(
     with concurrent.futures.ProcessPoolExecutor(max_workers=workers_count) as executor:
         future_to_name = {
             executor.submit(
-                run_check, rule_file, name, layout_path, run_dir, switches
+                run_check, rule_file, [name], layout_path, run_dir, switches
             ): name
             for name, rule_file in rule_deck_files.items()
         }
@@ -657,7 +657,7 @@ def run_single_processor(
         """
         if flag_enabled:
             drc_path = rule_deck_full_path / "rule_decks" / f"{name}.drc"
-            result_dbs.append(run_check(drc_path, name, layout_path, run_dir, switches))
+            result_dbs.append(run_check(drc_path, [name], layout_path, run_dir, switches))
             logging.info(f"Completed running {name.capitalize()} checks.")
 
     # Handle *_only flags (exclusive checks)
@@ -672,15 +672,15 @@ def run_single_processor(
         return 0
 
     # Run primary table check
-    table_name = args.table[0] if args.table else "main"
-    if table_name != "main":
+    tables = args.table if args.table else ["main"]
+    if "main" not in tables:
         # Disable all runset switches
-        # since only a single table is enabled
+        # since only a subset is enabled
         switches["no_feol"] = "true"
         switches["no_beol"] = "true"
         switches["no_forbidden"] = "true"
         switches["no_pin"] = "true"
-    result_dbs.append(run_check(rule_deck_full_path / "ihp-sg13g2.drc", table_name, layout_path, run_dir, switches))
+    result_dbs.append(run_check(rule_deck_full_path / "ihp-sg13g2.drc", tables, layout_path, run_dir, switches))
 
     # Run additional checks if requested
     run_check_by_flag(args.antenna, "antenna")

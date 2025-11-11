@@ -19,7 +19,7 @@
 #===============================================
 # ------------------ 6.10 Sealring -------------
 #===============================================
-if TABLE_NAME == 'sealring' || BEOL
+if TABLES.include?('sealring') || BEOL
 
   logger.info('Starting 6.10 Sealring table')
 
