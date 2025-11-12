@@ -178,6 +178,7 @@ def get_drc_values(logger)
       logger.info("Loaded TECH DRC rules values from #{$drc_json}")
     rescue StandardError => e
       logger.error("Error reading TECH DRC rules from #{$drc_json}: #{e.message}")
+      raise "Error reading TECH DRC rules from #{$drc_json}: #{e.message}"
     end
   end
 
@@ -188,7 +189,7 @@ def get_drc_values(logger)
     logger.info("Loaded default DRC rules values from #{$drc_json_default}")
   rescue StandardError => e
     logger.error("Error reading default DRC rules from #{$drc_json_default}: #{e.message}")
-    return {}
+    raise "Error reading default DRC rules from #{$drc_json_default}: #{e.message}"
   end
 
   merged_rules = tech_rules.merge(default_rules)
