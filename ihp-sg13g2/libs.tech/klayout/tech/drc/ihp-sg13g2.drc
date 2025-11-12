@@ -168,6 +168,7 @@ logger.info("CONNECTIVITY_RULES enabled: #{CONNECTIVITY_RULES}.")
 def get_drc_values(logger)
   script_dir = File.expand_path(File.dirname(__FILE__))
   $drc_json_default = $drc_json_default || File.join(script_dir, 'rule_decks/sg13g2_tech_default.json')
+  $drc_json = $drc_json || File.join(script_dir, '../../python/sg13g2_pycell_lib/sg13g2_tech_mod.json')
 
   tech_rules = {}
   if $drc_json && $drc_json != $drc_json_default
