@@ -166,6 +166,9 @@ logger.info("CONNECTIVITY_RULES enabled: #{CONNECTIVITY_RULES}.")
 
 # Method to get DRC values from JSON files
 def get_drc_values(logger)
+  script_dir = File.expand_path(File.dirname(__FILE__))
+  $drc_json_default = $drc_json_default || File.join(script_dir, 'rule_decks/sg13g2_tech_default.json')
+
   tech_rules = {}
   if $drc_json && $drc_json != $drc_json_default
     begin
