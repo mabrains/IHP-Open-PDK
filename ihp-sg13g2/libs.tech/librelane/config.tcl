@@ -59,6 +59,7 @@ dict set ::env(KLAYOUT_DRC_OPTIONS) beol true
 dict set ::env(KLAYOUT_DRC_OPTIONS) pin true
 dict set ::env(KLAYOUT_DRC_OPTIONS) forbidden true
 dict set ::env(KLAYOUT_DRC_OPTIONS) run_mode deep
+dict set ::env(KLAYOUT_DRC_OPTIONS) no_recommended true
 dict set ::env(KLAYOUT_DRC_OPTIONS) drc_json_default "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/drc/rule_decks/sg13g2_tech_default.json"
 
 set ::env(KLAYOUT_DENSITY_RUNSET) "$::env(PDK_ROOT)/$::env(PDK)/libs.tech/klayout/tech/drc/rule_decks/density.drc"
