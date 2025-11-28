@@ -183,6 +183,12 @@ style gdsii
 # PSD, NSD (PPLUS, NPLUS implants)
 #----------------------------------------------------------------
 
+ layer tempnsd
+	# Calculate N+ area over n-taps so it can be used to
+	# fix areas where PSD merges across an n-tap.
+	bloat-or allnactivetap * 30 allpactivenontap 0
+	
+
  layer PSD
 	# PSD covers rppd and righ resistors
 	bloat-all pres,xres poly
@@ -196,9 +202,9 @@ style gdsii
 	or sealc
 	# fill catecorner abutments satisfying pSD.a, pSD.b
 	bridge	310 310
-	# and-not NSD
 	grow	185
 	shrink	185
+	and-not tempnsd
 	# handles pSD.l, minimum enclosed area = 0.25um^2
 	close   250000
 	mask-hints PSD
