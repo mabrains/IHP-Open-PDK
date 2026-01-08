@@ -79,19 +79,44 @@ if __name__ == "__main__":
         compiler = None
         print("VerilogA compiler not found - install 'openvaf-r' or 'openvaf' to generate the necessary models")
 
+    # Compile VerilogA models
     if compiler is not None:
-        command = compiler + " psp103.va --output " + destination_directory + "/psp103.osdi"
-        print(f"{compiler} is installed and about to run the command '{command}' in a location: {source_directory} ")
-        exec_app_in_directory(command, source_directory + "/psp103")
-        command = compiler + " psp103_nqs.va --output " + destination_directory + "/psp103_nqs.osdi"
-        print(f"{compiler} is installed and about to run the command '{command}' in a location: {source_directory} ")
-        exec_app_in_directory(command, source_directory + "/psp103")
-        command = compiler + " r3_cmc.va --output " + destination_directory + "/r3_cmc.osdi"
-        print(f"{compiler} is installed and about to run the command '{command}' in a location: {source_directory} ")
-        exec_app_in_directory(command, source_directory + "/r3_cmc")
-        command = compiler + " mosvar.va --output " + destination_directory + "/mosvar.osdi"
-        print(f"{compiler} is installed and about to run the command '{command}' in a location: {source_directory} ")
-        exec_app_in_directory(command, source_directory + "/mosvar")
+        # Map modelfile to source directory:
+        modelfile_map = {
+            "psp103": "psp103",
+            "psp103_nqs": "psp103",
+            "r3_cmc": "r3_cmc",
+            "mosvar": "mosvar"
+        }
+        num_models = len(modelfile_map)
+
+        # Print header
+        log_width = 70
+        header = f"Compiling VerilogA models using: '{compiler}'"
+        print(f"\n{'=' * log_width}")
+        print(f"{header:^{log_width}}")
+        print(f"{'=' * log_width}\n")
+
+        for idx, (modelfile, model_dir) in enumerate(modelfile_map.items()):
+            model_src_dir = f"{source_directory}/{model_dir}"
+            command = f"{compiler} {modelfile}.va --output {destination_directory}/{modelfile}.osdi"
+
+            # Output formatting
+            print(f"\n[{idx+1}/{num_models}] Compiling {modelfile}.va...")
+            print(f"  Command:           '{command}'")
+            print(f"  Working directory: '{model_src_dir}'")
+            print("-" * log_width)
+
+            # Run the compiler
+            exec_app_in_directory(command, model_src_dir)
+
+            print("-" * log_width)
+
+        # Print footer
+        footer = "VerilogA compilation done"
+        print(f"\n{'=' * log_width}")
+        print(f"{footer:^{log_width}}")
+        print(f"{'=' * log_width}\n")
 
     original_file =  pdk_root + "/ihp-sg13g2/libs.tech/ngspice/.spiceinit"
     symbolic_link = "/home/" + username + "/.spiceinit"
