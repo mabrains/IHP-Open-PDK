@@ -1,6 +1,12 @@
 # IHP Open Source PDK
 130nm BiCMOS Open Source PDK, dedicated for Analog/Digital, Mixed Signal and RF Design
 
+---
+> [!WARNING]
+> ### 📘 Installation Notice
+>
+> Before using this repository, **please review the [Installation Guide](https://ihp-open-pdk-docs.readthedocs.io/en/latest/install/installation.html)** for download procedure and to ensure your environment is set up correctly. The guide provides step-by-step instructions and important prerequisites. You can find it here: **[Installation Guide](https://ihp-open-pdk-docs.readthedocs.io/en/latest/install/installation.html)**.
+---
 ## Acknowledgment
 Special thanks to the following publicly funded German projects for their financial support, which has contributed to this work:  
 IHP Open130-G2 (16ME0852) https://www.elektronikforschung.de/projekte/ihp-open130-g2  
@@ -29,7 +35,8 @@ is not intended to be used for production at this moment.
 
 # Documentation
 
-Comprehensive documentation for the IHP Open Source PDK is available on [ReadTheDocs](https://ihp-open-pdk.readthedocs.io/en/latest/).
+Comprehensive documentation for the IHP Open Source PDK is available on [ReadTheDocs](https://ihp-open-pdk-docs.readthedocs.io/en/latest/).
+For building or contributing, visit the [IHP-Open-PDK-docs repository](https://github.com/IHP-GmbH/IHP-Open-PDK-docs).
 
 The documentation provides detailed information on PDK installation, setup for supported EDA tools, device libraries, layout rules, process specifications and design flow examples. It is the recommended starting point for users who want to explore the PDK structure, simulation models, layout design environments, etc.
 
