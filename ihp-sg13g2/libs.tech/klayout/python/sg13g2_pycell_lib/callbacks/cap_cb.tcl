@@ -33,8 +33,8 @@ proc CbCapCalc {calc c l w cell} {
     set w [Stof $w]
 
     set w   [expr {$w   * 1.0e6}] ;# um (needed for contact calculation)
-    set l   [expr {$l   * 1.0e6}] 
-    set lwd [expr {$lwd * 1.0e6}] 
+    set l   [expr {$l   * 1.0e6}]
+    set lwd [expr {$lwd * 1.0e6}]
 
     set result 0
     switch $calc {
@@ -63,9 +63,9 @@ proc CbCapCalc {calc c l w cell} {
 #******************************************************************************************************
 # cap callback function
 proc CbCap {param} {
-    
+
     global SG13_GRID
-    
+
     set RC 1
 
     # get cell name to make procedure sharing with different parameter sets possible
@@ -89,7 +89,7 @@ proc CbCap {param} {
     set maxL [techGetParam ${cell}_maxL]
     set minW [techGetParam ${cell}_minW]
     set maxW [techGetParam ${cell}_maxW]
-      
+
     # test, if data read, when not read: use minLW maxLW values
     if {$minL != ""} {
         set minL [Stof $minL]
@@ -111,7 +111,7 @@ proc CbCap {param} {
     } else {
         set maxW $maxLW
     }
-    
+
     set minC [Stof [techGetParam ${cell}_minC]]
     set maxC [Stof [techGetParam ${cell}_maxC]]
 
@@ -162,9 +162,9 @@ proc CbCap {param} {
             iPDK_setParamValue C [Ftos $c 3] $cellId
         }  ;# 'C
     }  ;# switch
-    
+
     # now recalculate other params
-    
+
     set calc [iPDK_getParamValue Calculate $cellId]
     switch $calc {
         C {
@@ -200,10 +200,10 @@ proc CbCap {param} {
             }
         }  ;# "w&l"
     }  ;# switch
-   
+
     # recalculate c value (may have changed due to grid rounding)
     set c [CbCapCalc C 0 $l $w $cell]
-   
+
     iPDK_setParamValue C [Ftos $c 3] $cellId
 
     # check for error condition, restore old data in that case
@@ -217,14 +217,14 @@ proc CbCap {param} {
         if {[Less $c $minC 1f] || [Greater $c $maxC 1f] } {
             CbMessage [format "%s < c = %s < %s" $minC $c $maxC]
         }
-        
+
         set RC 0
         CbMessage "parameter value out of range - restoring last value"
-        
+
         set c $cold
         set l $lold
         set w $wold
-        
+
         switch $param {
             C {
                 if {$wold!="" && $lold!=""} {
@@ -251,12 +251,12 @@ proc CbCap {param} {
                 }
             } ;# lw
         } ;# caseq
-        
+
         iPDK_setParamValue C [Ftos $c 3] $cellId
         iPDK_setParamValue w [Ftos $w 3] $cellId
         iPDK_setParamValue l [Ftos $l 3] $cellId
     }
-      
+
     return $RC
 }
 
@@ -270,11 +270,11 @@ proc CbVaricap {param} {
     # get cell name to make procedure sharing with different parameter sets possible
     set cellId [iPDK_getCurrentInst]
     set cell   [iPDK_getInstCellName $cellId]
-    
+
     set minN [expr int([techGetParam ${cell}_min${param}])]
     set maxN [expr int([techGetParam ${cell}_max${param}])]
 
-    
+
     switch $param {
         Nx {
             set oldN [expr round([Stof [iPDK_getParamValue Nx $cellId]])]   ;# no epsilon needed. Nx should be it. Round ist just be be secure
@@ -293,7 +293,7 @@ proc CbVaricap {param} {
         CbMessage "${param}  too large"
         set oldN $maxN
     }
-    
+
     switch $param {
         Nx {
             iPDK_setParamValue Nx $oldN $cellId
@@ -313,7 +313,7 @@ proc CbSVaricap {param} {
 
     set cellId [iPDK_getCurrentInst]
     set cell   [iPDK_getInstCellName $cellId]
-    
+
     switch $param {
         w {
             # get actual w
@@ -323,7 +323,7 @@ proc CbSVaricap {param} {
             set maxw [techGetParam ${cell}_maxw]
             set minl [techGetParam ${cell}_minl]
             set maxl [techGetParam ${cell}_maxl]
-        
+
             # check which w and l have to be used
             set wdiff1 [expr abs([Stof $actw]-[Stof $minw])]
             set wdiff2 [expr abs([Stof $actw]-[Stof $maxw])]
@@ -335,7 +335,7 @@ proc CbSVaricap {param} {
                     set neww $maxw
                     CbMessage "${param} too large\nAllowed values are ${minw} and ${maxw}. Setting to value ${neww}!"
                 }
-                
+
                 # set l to the right value
                 iPDK_setParamValue w $neww $cellId
             }
@@ -365,14 +365,14 @@ proc CbSVaricap {param} {
                 CbMessage "Setting Nx to min Value $minNx"
                 iPDK_setParamValue Nx [expr int($Nx)] $cellId
             }
-            
+
             if {$Nx > $maxNx} {
                 set Nx $maxNx
                 CbMessage "Setting Nx to max Value $minNx"
                 iPDK_setParamValue Nx [expr int($Nx)] $cellId
             }
         }
-        
+
         default {
             set minN [expr int([techGetParam ${cell}_min${param}])]
             set maxN [expr int([techGetParam ${cell}_max${param}])]
@@ -405,7 +405,7 @@ proc CbSVaricap {param} {
             }
         }
     }
-    
+
     # calculate effective area
     set l  [Stof [iPDK_getParamValue l  $cellId]]
     set w  [Stof [iPDK_getParamValue w  $cellId]]
@@ -419,9 +419,9 @@ proc CbSVaricap {param} {
 # CbSVaricap_wl
 #***********************************************************************************************************************
 proc CbSVaricap_wl {var} {
-    
+
     set cellId [iPDK_getCurrentInst]
-    
+
     switch $var {
         w {
             if {[iPDK_getParamValue w $cellId] == "3.74u"} {
@@ -444,9 +444,9 @@ proc CbSVaricap_wl {var} {
 # CbSVaricap_thickO
 #***********************************************************************************************************************
 proc CbSVaricap_thickO {} {
-    
+
     set cellId [iPDK_getCurrentInst]
-    
+
     iPDK_setParamValue thickO t $cellId
     set thickOx [iPDK_getParamValue thickO $cellId]
     if {$thickOx == t} {
@@ -454,7 +454,7 @@ proc CbSVaricap_thickO {} {
     } else {
         set model "sg13_lv_svaricap"
     }
-    
+
     iPDK_setParamValue model $model $cellId
 }
 
