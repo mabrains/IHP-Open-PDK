@@ -411,6 +411,11 @@ label diodevdd_2kv FreeSans 600 90 0 0 c comment
 select area label
 setlabel sticky true
 select clear
+property gencell diodevdd_2kv
+property library sg13g2
+if {[info var parameters] == "parameters"} {
+    property parameters $parameters
+}
 view
 units {*}$curunits
 tech revert

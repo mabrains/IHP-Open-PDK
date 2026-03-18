@@ -204,6 +204,11 @@ setlabel sticky true
 # PWELLBLK will be generated automatically.
 property MASKHINTS_PWELLBLK -326 -368 566 -130 -326 -130 -160 510 400 -130 566 510 -326 510 566 670
 select clear
+property gencell schottky_nbl1
+property library sg13g2
+if {[info var parameters] == "parameters"} {
+    property parameters $parameters
+}
 view
 units {*}$curunits
 tech revert

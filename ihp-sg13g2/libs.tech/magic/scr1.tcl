@@ -267,6 +267,11 @@ label scr1 FreeSans 500 0 0 0 ne space
 select area label
 setlabel sticky true
 select clear
+property gencell scr1
+property library sg13g2
+if {[info var parameters] == "parameters"} {
+    property parameters $parameters
+}
 view
 units {*}$curunits
 tech revert
