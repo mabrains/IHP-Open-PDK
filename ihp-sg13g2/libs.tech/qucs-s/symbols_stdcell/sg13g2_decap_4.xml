@@ -50,5 +50,8 @@ limitations under the License.
         <Parameter name="VSS" unit="" default_value="VSS" show="false">
             <Description>VSS terminal net name</Description>
         </Parameter>
+        <Parameter name="type" unit="" default_value="decap" show="false">
+            <Description>Symbol type</Description>
+        </Parameter>
     </Parameters>
 </Component>
