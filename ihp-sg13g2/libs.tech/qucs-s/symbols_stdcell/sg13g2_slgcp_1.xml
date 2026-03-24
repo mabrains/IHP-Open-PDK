@@ -34,7 +34,7 @@ limitations under the License.
     </Netlists>
     <Symbols>
         <Symbol id="Standard">
-            <File>{QUCS_S_COMPONENTS_LIBRARY}/sym/GCLK.sym</File>
+            <File>{QUCS_S_COMPONENTS_LIBRARY}/sym/SGCLK.sym</File>
         </Symbol>
     </Symbols>
     <Parameters>
