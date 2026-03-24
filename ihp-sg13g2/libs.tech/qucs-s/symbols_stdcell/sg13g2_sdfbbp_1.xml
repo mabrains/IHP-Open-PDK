@@ -34,7 +34,7 @@ limitations under the License.
     </Netlists>
     <Symbols>
         <Symbol id="Standard">
-            <File>{QUCS_S_COMPONENTS_LIBRARY}/sym/SDFF.sym</File>
+            <File>{QUCS_S_COMPONENTS_LIBRARY}/sym/SDFFB.sym</File>
         </Symbol>
     </Symbols>
     <Parameters>
@@ -49,9 +49,6 @@ limitations under the License.
         </Parameter>
         <Parameter name="VSS" unit="" default_value="VSS" show="false">
             <Description>VSS terminal net name</Description>
-        </Parameter>
-        <Parameter name="type" unit="" default_value="sdfbbp" show="false">
-            <Description>Symbol Type</Description>
         </Parameter>
     </Parameters>
 </Component>

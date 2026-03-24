@@ -18,9 +18,9 @@ limitations under the License.
 <!-- Q -->
 <PortSym x="60" y="-90" type="1" angle="180" /> 
 <Text x="30" y="-95" size="10" color="#800000" text="Q" />
-<!-- Q_N -->
+<!-- Q_N (sdfbbp only) -->
 <PortSym x="60" y="-20" type="1" angle="180" /> 
-<Text x="20" y="-25" size="10" color="#800000" text="Q-N"  />
+<Text x="20" y="-25" size="10" color="#800000" text="Q-N" />
 <!-- CLK -->
 <PortSym x="-40" y="-20" type="1" angle="0" /> 
 <Text x="-20" y="-15" size="10" color="#800000" text="CLK" />
@@ -50,6 +50,15 @@ limitations under the License.
 <Line x1="60" y1="-90" x2="45" y2="-90" color="#000080" width="2" style="1" /> <!-- Q leg-->
 <Line x1="10" y1="20" x2="10" y2="10" color="#000080" width="2" style="1" /> <!-- RESET-B leg-->
 <Arc x="5" y="10" arcWidth="10" height="-10" angle="0" len="5760" color="#000080" width="2" style="1" />
-<Line x1="60" y1="-20" x2="45" y2="-20" color="#000080" width="2" style="1" /> <!-- Q_N leg (sdfrbp only) -->
 
+<!-- sdfbbp -->
+<!-- Q_N (sdfbbp only) -->
+<Line x1="60" y1="-20" x2="45" y2="-20" color="#000080" width="2" style="1"/> <!-- Q_N leg (sdfbbp only) -->
+
+<!-- SET_B (sdfbbp only) -->
+<PortSym x="10" y="-130" type="1" angle="0" /> 
+<Text x="0" y="-105" size="10" color="#800000" text="SET-B"/>
+
+<Line x1="10" y1="-120" x2="10" y2="-130" color="#000080" width="2" style="1"  />
+<Arc x="5" y="-110" arcWidth="10" height="-10" angle="0" len="5760" color="#000080" width="2" style="1" />
 
