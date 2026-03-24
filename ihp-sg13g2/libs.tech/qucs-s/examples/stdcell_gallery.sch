@@ -1,6 +1,6 @@
 <Qucs Schematic 25.2.0>
 <Properties>
-  <View=-87,40,2430,1505,0.598361,0,1>
+  <View=-95,40,2439,1515,0.594301,0,1>
   <Grid=10,10,1>
   <DataSet=stdcell_gallery.dat>
   <DataDisplay=stdcell_gallery.dpl>
@@ -37,13 +37,13 @@
   <sg13g2_decap_8 decap2 1 1000 340 -16 24 0 0 "X" 0 "sg13g2_decap_8" 0 "VDD" 0 "VSS" 0 "decap" 0>
   <sg13g2_dfrbp_1 dfrbp1 1 1180 220 -36 44 0 0 "X" 0 "sg13g2_dfrbp_1" 0 "VDD" 0 "VSS" 0 "dfrbp" 0>
   <sg13g2_dfrbp_2 dfrpb1 1 1320 220 -36 44 0 0 "X" 0 "sg13g2_dfrbp_2" 0 "VDD" 0 "VSS" 0 "dfrbp" 0>
-  <sg13g2_dfrbpq_1 dfrbpq1 1 1180 390 -36 44 0 0 "X" 0 "sg13g2_dfrbpq_1" 0 "VDD" 0 "VSS" 0 "dfrbpq" 0>
-  <sg13g2_dfrbpq_2 dfrbpq2 1 1320 390 -36 44 0 0 "X" 0 "sg13g2_dfrbpq_2" 0 "VDD" 0 "VSS" 0 "dfrbpq" 0>
-  <sg13g2_dlhq_1 dlhq1 1 1500 540 -36 24 0 0 "X" 0 "sg13g2_dlhq_1" 0 "VDD" 0 "VSS" 0 "dlhq" 0>
-  <sg13g2_dlhr_1 dlhr1 1 1630 220 -36 44 0 0 "X" 0 "sg13g2_dlhr_1" 0 "VDD" 0 "VSS" 0 "dlhr" 0>
-  <sg13g2_dlhrq_1 dlhrq1 1 1500 220 -36 44 0 0 "X" 0 "sg13g2_dlhrq_1" 0 "VDD" 0 "VSS" 0 "dlhrq" 0>
-  <sg13g2_dllr_1 dllr1 1 1640 380 -36 44 0 0 "X" 0 "sg13g2_dllr_1" 0 "VDD" 0 "VSS" 0 "dllr" 0>
-  <sg13g2_dllrq_1 dllrq1 1 1500 380 -36 44 0 0 "X" 0 "sg13g2_dllrq_1" 0 "VDD" 0 "VSS" 0 "dllrq" 0>
+  <sg13g2_dfrbpq_1 dfrbpq1 1 1180 390 -36 44 0 0 "X" 0 "sg13g2_dfrbpq_1" 0 "VDD" 0 "VSS" 0>
+  <sg13g2_dfrbpq_2 dfrbpq2 1 1320 390 -36 44 0 0 "X" 0 "sg13g2_dfrbpq_2" 0 "VDD" 0 "VSS" 0>
+  <sg13g2_dlhq_1 dlhq1 1 1500 540 -36 24 0 0 "X" 0 "sg13g2_dlhq_1" 0 "VDD" 0 "VSS" 0>
+  <sg13g2_dlhr_1 dlhr1 1 1630 220 -36 44 0 0 "X" 0 "sg13g2_dlhr_1" 0 "VDD" 0 "VSS" 0>
+  <sg13g2_dlhrq_1 dlhrq1 1 1500 220 -36 44 0 0 "X" 0 "sg13g2_dlhrq_1" 0 "VDD" 0 "VSS" 0>
+  <sg13g2_dllr_1 dllr1 1 1640 380 -36 44 0 0 "X" 0 "sg13g2_dllr_1" 0 "VDD" 0 "VSS" 0>
+  <sg13g2_dllrq_1 dllrq1 1 1500 380 -36 44 0 0 "X" 0 "sg13g2_dllrq_1" 0 "VDD" 0 "VSS" 0>
   <sg13g2_dlygate4sd1_1 dlygate4sd1 1 1790 180 -26 19 0 0 "X" 0 "sg13g2_dlygate4sd1_1" 0 "VDD" 0 "VSS" 0>
   <sg13g2_dlygate4sd2_1 dlygate4sd2 1 1790 270 -26 19 0 0 "X" 0 "sg13g2_dlygate4sd2_1" 0 "VDD" 0 "VSS" 0>
   <sg13g2_dlygate4sd3_1 dlygate4sd3 1 1790 360 -26 19 0 0 "X" 0 "sg13g2_dlygate4sd3_1" 0 "VDD" 0 "VSS" 0>
@@ -87,19 +87,19 @@
   <sg13g2_or3_2 or4 1 1600 900 -26 38 0 0 "X" 0 "sg13g2_or3_2" 0 "VDD" 0 "VSS" 0>
   <sg13g2_or4_1 or5 1 1480 1050 -26 38 0 0 "X" 0 "sg13g2_or4_1" 0 "VDD" 0 "VSS" 0>
   <sg13g2_or4_2 or6 1 1600 1050 -26 38 0 0 "X" 0 "sg13g2_or4_2" 0 "VDD" 0 "VSS" 0>
-  <sg13g2_sdfbbp_1 sdfrbbp1 1 1790 1300 -36 24 0 0 "X" 0 "sg13g2_sdfbbp_1" 0 "VDD" 0 "VSS" 0 "sdfbbp" 0>
+  <sg13g2_sdfbbp_1 sdfrbbp1 1 1790 1300 -36 24 0 0 "X" 0 "sg13g2_sdfbbp_1" 0 "VDD" 0 "VSS" 0>
   <sg13g2_sdfrbp_1 sdfrbp1 1 1780 890 -36 24 0 0 "X" 0 "sg13g2_sdfrbp_1" 0 "VDD" 0 "VSS" 0 "sdfrbp" 0>
   <sg13g2_sdfrbp_2 sdfrbp2 1 1920 890 -36 24 0 0 "X" 0 "sg13g2_sdfrbp_2" 0 "VDD" 0 "VSS" 0 "sdfrbp" 0>
-  <sg13g2_sdfrbpq_1 sdfrbpq1 1 1780 1090 -36 24 0 0 "X" 0 "sg13g2_sdfrbpq_1" 0 "VDD" 0 "VSS" 0 "sdfrbpq" 0>
-  <sg13g2_sdfrbpq_2 sdfrbpq2 1 1930 1090 -36 24 0 0 "X" 0 "sg13g2_sdfrbpq_2" 0 "VDD" 0 "VSS" 0 "sdfrbpq" 0>
+  <sg13g2_sdfrbpq_1 sdfrbpq1 1 1780 1090 -36 24 0 0 "X" 0 "sg13g2_sdfrbpq_1" 0 "VDD" 0 "VSS" 0>
+  <sg13g2_sdfrbpq_2 sdfrbpq2 1 1930 1090 -36 24 0 0 "X" 0 "sg13g2_sdfrbpq_2" 0 "VDD" 0 "VSS" 0>
   <sg13g2_sighold sighold1 1 1470 1390 -26 14 0 0 "X" 0 "sg13g2_sighold" 0 "VDD" 0 "VSS" 0>
   <sg13g2_tiehi tiehi1 1 1320 1380 -16 5 0 0 "X" 0 "sg13g2_tiehi" 0 "VDD" 0 "VSS" 0>
   <sg13g2_tielo tielo1 1 1190 1370 -6 20 0 0 "X" 0 "sg13g2_tielo" 0 "VDD" 0 "VSS" 0>
-  <sg13g2_slgcp_1 slgcp1 1 750 1400 -31 28 0 0 "X" 0 "sg13g2_slgcp_1" 0 "VDD" 0 "VSS" 0>
-  <sg13g2_lgcp_1 lgcp1 1 540 1400 -31 28 0 0 "X" 0 "sg13g2_lgcp_1" 0 "VDD" 0 "VSS" 0>
   <sg13g2_xor2_1 xor1 1 2110 810 -26 28 0 0 "X" 0 "sg13g2_xor2_1" 0 "VDD" 0 "VSS" 0>
   <sg13g2_xnor2_1 xnor1 1 2110 920 -26 25 0 0 "X" 0 "sg13g2_xnor2_1" 0 "VDD" 0 "VSS" 0>
   <sg13g2_antennanp antennanp1 1 1060 1390 -26 9 0 0 "X" 0 "sg13g2_antennanp" 0 "VDD" 0 "VSS" 0>
+  <sg13g2_lgcp_1 lgcp1 1 540 1400 -31 28 0 0 "X" 0 "sg13g2_lgcp_1" 0 "VDD" 0 "VSS" 0>
+  <sg13g2_slgcp_1 slgcp1 1 740 1410 -31 28 0 0 "X" 0 "sg13g2_slgcp_1" 0 "VDD" 0 "VSS" 0>
 </Components>
 <Wires>
 </Wires>
@@ -120,8 +120,8 @@
   <Text 879 695 16 #000000 0 "nand">
   <Text 1209 695 16 #000000 0 "nor">
   <Text 1519 705 16 #000000 0 "or">
-  <Text 1849 715 16 #000000 0 "scan dff">
-  <Text 2079 715 16 #000000 0 "xor / xnor">
+  <Text 1819 705 16 #000000 0 "scan dff">
+  <Text 2069 705 16 #000000 0 "xor / xnor">
   <Text 620 1280 16 #000000 0 "clocked gate">
   <Text 1240 1300 16 #000000 0 "spacial">
 </Paintings>
