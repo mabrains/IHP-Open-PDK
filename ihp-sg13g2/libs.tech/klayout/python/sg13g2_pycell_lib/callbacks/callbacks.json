@@ -19,24 +19,60 @@
     "moduleList": [
         "parameters.tcl",
         "util.tcl",
-        "cap_cb.tcl"
+        "cap_cb.tcl",
+        "diode_cb.tcl",
+        "bondpad_cb.tcl"
     ],
     "callbackDefinition": {
         "callbackList": [
             {
                 "device": "cmim",
-                "callback": "CbCap",
-                "pcellParameters": ["C", "w", "l"]
+                "callbacks": [
+                    {
+                        "callback": "CbCap",
+                        "pcellParameters": ["C", "w", "l"]
+                    }
+                ]
             },
             {
                 "device": "rfcmim",
-                "callback": "CbCap",
-                "pcellParameters": ["C", "w", "l"]
+                "callbacks": [
+                    {
+                        "callback": "CbCap",
+                        "pcellParameters": ["C", "w", "l"]
+                    }
+                ]
             },
             {
                 "device": "SVaricap",
-                "callback": "CbSVaricap_wl",
-                "pcellParameters": ["w", "l"]
+                "callbacks": [
+                    {
+                        "callback": "CbSVaricap_wl",
+                        "pcellParameters": ["w", "l"]
+                    }
+                ]
+            },
+            {
+                "device": "dantenna",
+                "callbacks": [
+                    {
+                        "callback": "CbDiode",
+                        "pcellParameters": ["w", "l", "a"]
+                    }
+                ]
+            },
+            {
+                "device": "bondpad",
+                "callbacks": [
+                    {
+                        "callback": "CbBondpad",
+                        "pcellParameters": ["topMetal", "bottomMetal"]
+                    },
+                    {
+                        "callback": "bondpad_cb",
+                        "pcellParameters": ["hwquota", "diameter", "padType", "passEncl", "FlipChip"]
+                    }
+                ]
             }
         ]
     }

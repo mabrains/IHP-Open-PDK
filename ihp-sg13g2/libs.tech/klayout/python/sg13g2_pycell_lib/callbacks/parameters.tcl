@@ -40,9 +40,22 @@ proc setCurrentCellParameters {parameters} {
     set currentCellParameters [dict create]
 
     dict for {key value} $parameters {
-        # remove decoration from key/value
         regexp {'?([^',]+)'?:?} $key match undecoratedKey
-        regexp {'?([^',]+)'?,?} $value match undecoratedValue
+        #puts "DEB $key=$value"
+        if {[regexp {'?(__isspace__(\d+))'?,?} $value match keyword numSpaces]} {
+            #puts "DEB numSpaces $numSpaces"
+            if {[string equal $numSpaces 0]} {
+                #puts "DEB zero numSpaces"
+                set undecoratedValue {}
+            } else {
+                set undecoratedValue [format "%-*s" $numSpaces ""]
+            }
+        } else {
+            # remove decoration from key/value
+            regexp {'?([^',]+)'?,?} $value match undecoratedValue
+        }
+
+        #puts "DEB undecoratedValue='$undecoratedValue'"
         dict append currentCellParameters $undecoratedKey $undecoratedValue
     }
 }
@@ -50,7 +63,22 @@ proc setCurrentCellParameters {parameters} {
 proc getCurrentCellParameters {} {
     global currentCellParameters
 
-    return $currentCellParameters
+    set coercedCellParameters [dict create]
+
+    #puts "DEB getCurrentCellParameters"
+
+    dict for {key value} $currentCellParameters {
+        #puts "DEB Tcl parameter: $key='$value'"
+        if {[regexp {^\s*$} $value match]} {
+            set numSpaces [string length $match]
+            set value '__isspace__$numSpaces'
+        }
+        dict append coercedCellParameters $key $value
+    }
+
+    #puts "DEB Tcl parameters: $coercedCellParameters"
+
+    return $coercedCellParameters
 }
 
 proc setTechParameters {techParams} {
@@ -85,8 +113,6 @@ proc techGetParam {name} {
 proc cni_getParamValue {param inst} {
     global currentCellParameters
 
-    # Tcl decorates every parameter name from the cell definition with '...':
-
     if {[dict exists $currentCellParameters $param]} {
         set value [dict get $currentCellParameters $param]
         return $value
@@ -107,6 +133,8 @@ set SG13_GRID [techGetParam grid]
 if {$SG13_GRID == ""} {
     set SG13_GRID 0.01
 }
+
+set SG13_IGRID [expr {1.0/$SG13_GRID}]
 
 global SG13_EPSILON
 global SG13_EPSILON2
@@ -181,7 +209,16 @@ proc iPDK_engToSci { value } {
         set path "$path:$cniPythonPath"
         set ::env(PYTHONPATH) $path
 
-        set res [exec python -c "import callback; print(f'{callback.cni_engToSci('$value')}')"]
+        set pythonPath [auto_execok python3]
+        if {$pythonPath eq ""} {
+            set pythonPath [auto_execok python]
+        }
+        if {$pythonPath eq ""} {
+            puts "Err: No python executable found!"
+            return ""
+        }
+
+        set res [exec $pythonPath -c "import callback; print(f'{callback.cni_engToSci('$value')}')"]
         dict append sciCache $value $res
     }
     return $res

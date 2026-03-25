@@ -53,6 +53,7 @@ pcellRfpmos = layout.create_cell("rfpmos", "SG13_dev", {})
 pcellRfpmosHV = layout.create_cell("rfpmosHV", "SG13_dev", {})
 pcellNoFillerStack = layout.create_cell("NoFillerStack", "SG13_dev", {})
 pcellSVaricap = layout.create_cell("SVaricap", "SG13_dev", {})
+pcellEsd = layout.create_cell("esd", "SG13_dev", {})
 
 top = layout.create_cell("TOP")
 
@@ -81,6 +82,7 @@ top.insert(pya.DCellInstArray(pcellInductor2, pya.DTrans(pya.DVector(40, -85))))
 top.insert(pya.DCellInstArray(pcellInductor3, pya.DTrans(pya.DVector(49, -190))))
 top.insert(pya.DCellInstArray(pcellSealring, pya.DTrans(pya.DVector(160, -190))))
 top.insert(pya.DCellInstArray(pcellBondpad, pya.DTrans(pya.DVector(40, 60))))
+top.insert(pya.DCellInstArray(pcellEsd, pya.DTrans(pya.DVector(40, 120))))
 
 output = "SG13_dev.gds"
 layout.write(output)
