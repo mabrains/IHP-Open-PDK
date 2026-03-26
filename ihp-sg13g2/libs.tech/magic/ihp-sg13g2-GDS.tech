@@ -894,7 +894,7 @@ style patternfill variants (),(tiled)
 	grow	580
 	or	ALLDIFF,DIFFFILL,DIFFBLOCK,difffill_coarse
 
- templayer      obstruct_poly_medium ALLDIFF,DIFFILL
+ templayer      obstruct_poly_medium ALLDIFF,DIFFFILL
 	or	difffill_coarse
 	or	ALLPOLY,POLYBLOCK
 	or	BIPOLARID,SBLK,NSDBLOCK,PSD
