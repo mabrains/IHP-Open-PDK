@@ -18,18 +18,19 @@
 
 #******************************************************************************************************
 proc CbBondpad {param} { ;# check topMetal or bottom Metal
-    
+
     set rc 1
-    
+
     set cellId [iPDK_getCurrentInst]
     set cell   [iPDK_getInstCellName $cellId]
 
     set metallization [techGetParam "metalName"]
     set actTopMet [iPDK_getParamValue topMetal    $cellId]
     set actBotMet [iPDK_getParamValue bottomMetal $cellId]
+    set writeTM1 ""
     #set botMetText $actBotMet
     #set topMetText $actTopMet
-    
+
     if {$actBotMet == "TM1"} {
         set writeTM1 1
         # Check Metallization for BotMetNumber and set to number
@@ -49,18 +50,18 @@ proc CbBondpad {param} { ;# check topMetal or bottom Metal
         topMetal {
             iPDK_setParamValue topMetal $actTopMet $cellId
         }  ;# topMetal
-        
+
         bottomMetal {
             # get the number of topest Metal(4,5, 7,8 )
             set tmpTopMetNr [iPDK_getParamValue topMetal $cellId]
-            
+
             if { [string length $tmpTopMetNr] == 1} {
                 set topMetalNumber [expr $tmpTopMetNr]
             } else {
-                set topMetalNumber [expr [string range [iPDK_getParamValue topMetal $cellId] 3 1]]       ;# hat to be 1 or 2
-                set topMetalNumber [expr ${topMetalNumber}+[expr [string range $metallization 2 1]]-1 ]  ;# add 4 or 7
+                set topMetalNumber [string range [iPDK_getParamValue topMetal $cellId] 2 2]       ;# hat to be 1 or 2
+                set topMetalNumber [expr ${topMetalNumber}+[expr [string range $metallization 1 1]]-1 ]  ;# add 4 or 7
             }
-            
+
             set newBotMet $actBotMet
 
             # is bottom under top?
@@ -72,7 +73,7 @@ proc CbBondpad {param} { ;# check topMetal or bottom Metal
                 set writeTM1 0
                 set rc 0
             }
-            
+
             # Set botMetValue in every Case to fix CDF Update
             set actBotMet $newBotMet
             if {$writeTM1 != ""} {
@@ -81,30 +82,30 @@ proc CbBondpad {param} { ;# check topMetal or bottom Metal
                 iPDK_setParamValue bottomMetal $actBotMet $cellId
             }
         }
-        
+
         t {
             CbMessage "You must'n be here\nI think You found a bug. Congratulation."
             set rc 0
         }
     }
-    
+
     return $rc
 }
 
 #******************************************************************************************************
 proc bondpad_cb {param} {
-    
+
     set cellId [iPDK_getCurrentInst]
     set cell   [iPDK_getInstCellName $cellId]
 
     set diam [Stof [iPDK_getParamValue diameter $cellId]]
     set hwq  [Stof [iPDK_getParamValue hwquota  $cellId]]
-    
+
     if {$hwq > 8.} {
         set hwq 8
         iPDK_setParamValue hwquota [Ftos $hwq] $cellId
     }
-    
+
     if {[expr $hwq] < 0.125} {
         set hwq 0.125
         iPDK_setParamValue hwquota [Ftos $hwq] $cellId
@@ -113,7 +114,7 @@ proc bondpad_cb {param} {
     set typ  [iPDK_getParamValue padType  $cellId]
     set flip [iPDK_getParamValue FlipChip $cellId]
     set diamsmall [expr min($diam*$hwq, $diam/$hwq)]
-    
+
     if {$typ == "probepad"} {
         set minsize [Stof 40u]
     } else {
@@ -122,7 +123,7 @@ proc bondpad_cb {param} {
     if {$flip == "yes"} {
         set minsize [Stof 80u]
     }
-    
+
     switch $param {
         hwquota {
             if {$hwq == 1} {
@@ -199,7 +200,7 @@ proc bondpad_cb {param} {
 
 #******************************************************************************************************
 proc CbSealring {} {  ;# check topMetal of sealring
-    
+
     set rc t
     set cellId [iPDK_getCurrentInst]
 
@@ -223,6 +224,4 @@ proc CbSealring {} {  ;# check topMetal of sealring
 
     return rc
 }
-   
-   
-   
+
