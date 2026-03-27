@@ -218,7 +218,7 @@ proc iPDK_engToSci { value } {
             return ""
         }
 
-        set res [exec $pythonPath -c "import callback; print(f'{callback.cni_engToSci('$value')}')"]
+        set res [exec $pythonPath -c "import callback; print(f'{callback.cni_engToSci(\"$value\")}')"]
         dict append sciCache $value $res
     }
     return $res
