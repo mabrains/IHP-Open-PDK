@@ -251,10 +251,7 @@ proc sg13g2::npn13g2_base_generate {} {
     # Cell has a text label at the bottom;  force it to attach to "comment"
     box position 0 -2.3um
     box size 0 0
-    label npn13G2 c space
-    select area label
-    setlabel sticky 1
-    setlabel layer comment
+    label npn13G2 c +comment
     
     # Return to our regularly scheduled program
     load $curcell
@@ -613,13 +610,10 @@ proc sg13g2::npn13g2l_draw {parameters} {
 	port make
 
 	sg13g2::setbox $ebox
-	label E c m2
-	port make
 	# This port crosses vias, so make it sticky and make sure it
 	# is on metal 2.
-	select area label
-	setlabel sticky 1
-	setlabel layer m2
+	label E c +m2
+	port make
     }
 
     popbox
@@ -863,13 +857,10 @@ proc sg13g2::npn13g2v_draw {parameters} {
 
 	# Emitter
 	sg13g2::setbox $ebox
-	label E c m2
-	port make
 	# This port crosses vias, so make it sticky and make sure it
 	# is on metal 2.
-	select area label
-	setlabel sticky 1
-	setlabel layer m2
+	label E c +m2
+	port make
     }
 
     popbox
