@@ -86,6 +86,10 @@ style  sg13g2 variants ()
  labels NWELL
  labels WELLPIN port
 
+ # N-wells which are tagged with "isolbox" are recast as type isolbox
+ layer isolbox
+ tagged isolbox NWELL
+
  templayer nwellarea NWELL
  and-not pnp
  copyup nwelcheck
@@ -452,7 +456,7 @@ style  sg13g2 variants ()
  copyup nsubcheck
 
  templayer ntaparea nsdarea
- and DNWELL
+ tagged well DIFF
  and-not vararea
  and-not DIGITALID
 
@@ -476,6 +480,7 @@ style  sg13g2 variants ()
  copyup psubcheck
 
  templayer ptaparea psdarea
+ tagged sub! DIFF
  and SUBCUT,ptapcheck
  and-not DIGITALID
  copyup ptapcheck
@@ -519,7 +524,7 @@ style  sg13g2 variants ()
  copyup hvnsubcheck
 
  templayer hvntaparea hvnsdarea
- and DNWELL
+ tagged well DIFF
  and-not DIGITALID
 
  layer hvntap hvntaparea
@@ -543,6 +548,7 @@ style  sg13g2 variants ()
 
  templayer hvptaparea hvpsdarea
  and DNWELL
+ tagged sub! DIFF
  and-not DIGITALID
 
  layer hvptap hvptaparea
