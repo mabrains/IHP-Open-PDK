@@ -547,7 +547,6 @@ style  sg13g2 variants ()
  copyup hvpsubcheck
 
  templayer hvptaparea hvpsdarea
- and DNWELL
  tagged sub! DIFF
  and-not DIGITALID
 
@@ -644,8 +643,7 @@ style  sg13g2 variants ()
  and-not THKOX,hvcheck
 
  templayer ntapcbase nscbase
- and DNWELL
- and-not DIGITALID
+ and ntaparea
 
  layer nsc nscbase
  and-not ntapcbase
@@ -718,8 +716,7 @@ style  sg13g2 variants ()
  and-not THKOX,hvcheck
 
  templayer ptapcbase pscbase
- and SUBCUT
- and-not DIGITALID
+ and ptaparea
 
  layer psc pscbase
  and-not EDGESEAL
@@ -829,8 +826,7 @@ style  sg13g2 variants ()
  and THKOX,hvcheck
 
  templayer hvntapbase hvnscbase
- and DNWELL
- and-not DIGITALID
+ and hvntaparea
 
  layer hvnsc hvnscbase
  and-not hvntapbase
@@ -893,8 +889,7 @@ style  sg13g2 variants ()
  and THKOX,hvcheck
 
  templayer hvptapcbase hvpscbase
- and SUBCUT
- and-not DIGITALID
+ and hvptaparea
 
  layer hvpsc hvpscbase
  and-not hvptapcbase
