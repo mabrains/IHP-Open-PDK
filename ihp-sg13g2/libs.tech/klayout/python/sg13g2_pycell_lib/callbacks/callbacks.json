@@ -21,12 +21,14 @@
         "util.tcl",
         "cap_cb.tcl",
         "diode_cb.tcl",
-        "bondpad_cb.tcl"
+        "bondpad_cb.tcl",
+        "inductor_cb.tcl",
+        "isolbox_cb.tcl"
     ],
     "callbackDefinition": {
         "callbackList": [
             {
-                "device": "cmim",
+                "devices": ["cmim"],
                 "callbacks": [
                     {
                         "callback": "CbCap",
@@ -35,7 +37,7 @@
                 ]
             },
             {
-                "device": "rfcmim",
+                "devices": ["rfcmim"],
                 "callbacks": [
                     {
                         "callback": "CbCap",
@@ -44,7 +46,7 @@
                 ]
             },
             {
-                "device": "SVaricap",
+                "devices": ["SVaricap"],
                 "callbacks": [
                     {
                         "callback": "CbSVaricap_wl",
@@ -53,7 +55,7 @@
                 ]
             },
             {
-                "device": "dantenna",
+                "devices": ["dantenna"],
                 "callbacks": [
                     {
                         "callback": "CbDiode",
@@ -62,7 +64,7 @@
                 ]
             },
             {
-                "device": "bondpad",
+                "devices": ["bondpad"],
                 "callbacks": [
                     {
                         "callback": "CbBondpad",

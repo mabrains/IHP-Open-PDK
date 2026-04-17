@@ -27,7 +27,7 @@ proc isol_w {} {
 #   Callback function for a "w"-parameter.
 #
     set cellId [iPDK_getCurrentInst]
-    
+
     set tmpw [Stof [iPDK_getParamValue w $cellId]]
 
     set tmpWminS [iPDK_getParamValue Wmin $cellId]
@@ -39,14 +39,14 @@ proc isol_w {} {
         CbMessage "WARNING: wrong width: using minimum width ${tmpWminS}!!"
         iPDK_setParamValue w $tmpWminS $cellId
     }
-    
+
     if {$tmpw != "" && $tmpWmin!="" && $tmpWmin>$tmpw} {
         hiGetAttention
         hiGetAttention
         CbMessage "WARNING: wrong width: using minimum width ${tmpWminS}!!"
-        PDK_setParamValue w $tmpWminS $cellId
+        iPDK_setParamValue w $tmpWminS $cellId
     }
-    
+
     set tmpw [Stof [iPDK_getParamValue w $cellId]]
     set tmpl [Stof [iPDK_getParamValue l $cellId]]
 
@@ -66,7 +66,7 @@ proc isol_l {} {
 #   Callback function for a "l"-parameter.
 #
     set cellId [iPDK_getCurrentInst]
-    
+
     set tmpl [Stof [iPDK_getParamValue l $cellId]]
 
     set tmpLminS [iPDK_getParamValue Lmin $cellId]
@@ -78,21 +78,21 @@ proc isol_l {} {
         CbMessage "WARNING: wrong length: using minimum length ${tmpLminS}!!"
         iPDK_setParamValue l $tmpLminS $cellId
     }
-    
+
     if {$tmpl != "" && $tmpLmin!="" && $tmpLmin>$tmpl} {
         hiGetAttention
         hiGetAttention
         CbMessage "WARNING: wrong length: using minimum length ${tmpLminS}!!"
         iPDK_setParamValue l $tmpLminS $cellId
     }
-    
+
     set tmpw [Stof [iPDK_getParamValue w $cellId]]
     set tmpl [Stof [iPDK_getParamValue l $cellId]]
-    
+
     set area  [expr $tmpw*$tmpl]
     set perim [expr 2*($tmpw+$tmpl)]
     set tmpl  [GridFix [expr ($tmpl*1.0e6)]]
-    
+
     iPDK_setParamValue l [Ftos $tmpl 3]u $cellId
     iPDK_setParamValue a [Ftos [GridFix [expr ($area*1.0e12)]] 6]p $cellId
     iPDK_setParamValue p [Ftos [GridFix [expr ($perim*1.0e6)]] 6]u $cellId
@@ -105,7 +105,7 @@ proc isol_well {} {
 #   Callback function for a "w"-parameter.
 #
     set cellId [iPDK_getCurrentInst]
-    
+
     set tmpw [expr [Stof [iPDK_getParamValue w $cellId]]*1.0e6]
     set tmpl [expr [Stof [iPDK_getParamValue l $cellId]]*1.0e6]
     set well [iPDK_getParamValue wellwidth $cellId]
@@ -119,7 +119,7 @@ proc isol_well {} {
         set tmpminw 4.5u
         set tmpminl 4.5u
     }
-    
+
     set tmpwellwidth [expr [Stof [iPDK_getParamValue wellwidth $cellId]]*1.0e6]
     if {$tmpwellwidth < 0.85} {
         iPDK_setParamValue wellwidth 0.85u $cellId
@@ -130,7 +130,7 @@ proc isol_well {} {
     iPDK_setParamValue Lmin $tmpminl $cellId
     iPDK_setParamValue a [Ftos [expr   ($tmpw*$tmpl)] 3]p $cellId
     iPDK_setParamValue p [Ftos [expr 2*($tmpw+$tmpl)] 3]u $cellId
-    
+
     isol_w
     isol_l
 }
@@ -143,10 +143,10 @@ proc isolbox_cb {arg} {
     set a 64.24
     set b 68.59
     set c 0.56491
-    
+
     switch arg {
         Bv {
-            set bv [Stof [iPDK_getParamValue Bv $cellId]] 
+            set bv [Stof [iPDK_getParamValue Bv $cellId]]
             if {$bv <= 10.8} {
                 set bv 10.8
                 iPDK_setParamValue Bv $bv $cellId
@@ -157,7 +157,7 @@ proc isolbox_cb {arg} {
                 } else {
                     set w 10
                 }
-                
+
                 if {$w < 0.62} {
                     set w 0.62
                     set bv [expr $a-$b*pow($c,$w)]
@@ -187,11 +187,11 @@ proc isolbox_cb {arg} {
             }
         }
         pwell_w {
-            set w [Stof [iPDK_getParamValue pwell_w $cellId]] 
+            set w [Stof [iPDK_getParamValue pwell_w $cellId]]
             set w [expr $w*1e6]
             set w [GridFix $w]
             iPDK_setParamValue pwell_w ${w}u $cellId
-            
+
             if {$w > 0 && $w < 0.62} {
                  hiGetAttention
                  hiGetAttention
@@ -199,7 +199,7 @@ proc isolbox_cb {arg} {
                  iPDK_setParamValue pwell_w 0 $cellId
                  set w 0
             }
-             
+
             if {$w > 10} {
                 hiGetAttention
                 hiGetAttention
@@ -207,7 +207,7 @@ proc isolbox_cb {arg} {
                 iPDK_setParamValue pwell_w 10u $cellId
                 set w 10
             }
-              
+
             if {$w >= 0.5} {
                 set bv [expr $a-$b*pow($c,$w)]
             } else {
@@ -221,7 +221,7 @@ proc isolbox_cb {arg} {
 
 #***********************************************************************************
 proc isolbox_done {cellId} {
-    
+
     set width [Stof [iPDK_getParamValue w $cellId]]
     set length [Stof [iPDK_getParamValue l $cellId]]
     set wellwidth [Stof [iPDK_getParamValue wellwidth $cellId]]
