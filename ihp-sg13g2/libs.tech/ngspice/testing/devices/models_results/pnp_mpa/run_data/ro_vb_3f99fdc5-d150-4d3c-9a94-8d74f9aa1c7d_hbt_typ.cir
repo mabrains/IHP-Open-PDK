@@ -1,0 +1,63 @@
+* =========================================================================================
+* Copyright 2025 IHP PDK Authors
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     https://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* =========================================================================================
+
+*********
+*Sources*
+*********
+
+
+Vb b 0 -0.95
+Vc c 0 0.0
+Ve e 0 0.0
+
+*********
+*Circuit*
+*********
+
+X1 c b e pnpMPA a= 2e-06 p= 6e-06 m=1
+
+* ============================================================================================
+* ----------------------------------------- ANALYSIS -----------------------------------------
+* ============================================================================================
+
+.temp 27.0
+
+.control
+  set filetype=ascii
+  set wr_singlescale
+  set wr_vecnames
+
+  dc Ve 0 -2 -0.05
+
+  let ic = -i(Vc)
+  let ib = -i(Vb)
+  let ie = -i(Ve)
+
+  wrdata models_results/pnp_mpa/run_data/ro_vb_3f99fdc5-d150-4d3c-9a94-8d74f9aa1c7d_hbt_typ.csv v(e) ib ic ie
+  quit
+.endc
+
+* ============================================================================================
+* ------------------------------------- CIR/MODELS-SETUP -------------------------------------
+* ============================================================================================
+
+**************************
+*including files & models*
+**************************
+
+.lib ../../../../libs.tech/ngspice/models/cornerHBT.lib hbt_typ
+
+.end

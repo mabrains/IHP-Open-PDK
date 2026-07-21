@@ -1,0 +1,79 @@
+* =========================================================================================
+* Copyright 2025 IHP PDK Authors
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     https://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* =========================================================================================
+
+*********
+*Sources*
+*********
+
+.param VD=0.1
+.param VS=0.0
+.param VG=-0.5
+.param VB=-3.6
+
+Vd d 0 {VD}
+Vs s 0 {VS}
+Vg g 0 {VG}
+Vb b 0 {VB}
+
+*********
+*Circuit*
+*********
+
+.param W=1e-05
+.param L=1.2e-06
+.param AD=3.4e-12
+.param AS=3.4e-12
+.param PD=2.068e-05
+.param PS=2.068e-05
+.param NF=1
+.param M=1
+
+XU1 d g s b sg13_hv_nmos
++ w={W} l={L} m={M} ng={NF} ad={AD} as={AS} pd={PD} ps={PS}
+
+* ============================================================================================
+* ----------------------------------------- ANALYSIS -----------------------------------------
+* ============================================================================================
+
+.temp 27.0000                           
+
+.control
+  set filetype=ascii
+  set wr_singlescale
+  set wr_vecnames
+
+  dc vg -0.5 3.6 0.05
+
+  let ib = -i(Vb)
+  let id = -i(Vd)
+  let ig = -i(Vg)
+  let is = -i(Vs)
+
+  wrdata models_results/nmos_hv/run_data/dc_idvg_e943c923-ce12-4df8-9e66-771145edbd93_mos_ss.csv v(g) ib id ig is 
+  quit
+.endc
+
+* ============================================================================================
+* ------------------------------------- CIR/MODELS-SETUP -------------------------------------
+* ============================================================================================
+
+**************************
+*including files & models*
+**************************
+
+.lib ../../../../libs.tech/ngspice/models/cornerMOShv.lib mos_ss  
+
+.end
